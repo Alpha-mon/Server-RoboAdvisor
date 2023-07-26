@@ -58,7 +58,7 @@ public class ChatService {
                     .content(chatGptResponse.getChoices().get(0).getMessage().getContent())
                     .build();
         } catch (JsonProcessingException e) {
-            log.error("[[ChatService]] getMessageFromGpt ", e);
+            log.error("[Error in ChatService -> getMessageFromGpt] ", e);
             throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
     }
@@ -78,7 +78,7 @@ public class ChatService {
                     .build();
             response = client.send(request, HttpResponse.BodyHandlers.ofString()).body();
         } catch (IOException | InterruptedException e) {
-            log.error("[[ChatService]] getMessageFromGpt ", e);
+            log.error("[Error in ChatService -> sendRequestToGpt] ", e);
             throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
         return response;

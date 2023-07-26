@@ -14,11 +14,12 @@ public enum SuccessCode {
     /**
      * 200 OK
      */
-    MESSAGE_CREATED(HttpStatus.OK.value(), "요청이 정상적으로 생성되었습니다");
 
     /**
      * 201 CREATED
      */
+    MESSAGE_CREATED(HttpStatus.CREATED.value(), "요청이 정상적으로 생성되었습니다");
+
 
     private final int code;
     private final String message;

@@ -1,7 +1,7 @@
 package org.ai.roboadvisor.global.exception;
 
 import lombok.extern.slf4j.Slf4j;
-import org.ai.roboadvisor.global.common.dto.ApiResponse;
+import org.ai.roboadvisor.global.common.dto.ErrorApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = {CustomException.class})
-    public ResponseEntity<ApiResponse<?>> handleCustomException(CustomException e) {
+    public ResponseEntity<ErrorApiResponse<?>> handleCustomException(CustomException e) {
         return ResponseEntity.status(e.getErrorCode().getHttpStatus())
-                .body(ApiResponse.error(e.getErrorCode()));
+                .body(ErrorApiResponse.error(e.getErrorCode()));
     }
 }
