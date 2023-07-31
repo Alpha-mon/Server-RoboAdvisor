@@ -2,13 +2,14 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '2.7.13'
     id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+    id 'com.google.osdetector' version "1.7.1" // https://github.com/netty/netty/issues/11020
 }
 
 group = 'org.ai'
 version = '0.0.1-SNAPSHOT'
 
 java {
-    sourceCompatibility = '11'
+    sourceCompatibility = '17'
 }
 
 configurations {
@@ -22,9 +23,15 @@ repositories {
 }
 
 dependencies {
+    if (osdetector.classifier == "osx-aarch_64") {
+        runtimeOnly("io.netty:netty-resolver-dns-native-macos:4.1.77.Final:${osdetector.classifier}")
+    }
+
     // spring
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
 
     // lombok
     compileOnly 'org.projectlombok:lombok'
@@ -41,6 +48,7 @@ dependencies {
 
     // test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
 }
 
 tasks.named('test') {
