@@ -3,6 +3,65 @@ plugins {
     id 'org.springframework.boot' version '2.7.13'
     id 'io.spring.dependency-management' version '1.0.15.RELEASE'
     id 'com.google.osdetector' version "1.7.1" // https://github.com/netty/netty/issues/11020
+    id 'jacoco' // add jacoco plugin
+}
+
+jacoco {
+    toolVersion = '0.8.10'
+}
+
+jacocoTestReport {
+    reports {
+        html.required.set(true)
+        // To use codecov, enable xml.
+        // reference link: https://docs.codecov.com/docs/supported-report-formats
+        xml.required.set(true)
+        csv.required.set(false)
+
+        // path where result is saved
+        html.destination file("jacoco/")
+    }
+
+    // Ignore classes: Application, DTO, Config, etc
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    "org/ai/roboadvisor/**/**AdvisorApplication*",
+                    "org/ai/roboadvisor/**/*Dto*",
+                    "org/ai/roboadvisor/**/*dto*",
+                    "org/ai/roboadvisor/**/*Request*",
+                    "org/ai/roboadvisor/**/*Response*",
+                    "org/ai/roboadvisor/**/*entity*",
+                    "**/*Config*",
+                    "**/*Exception*",
+                    "**/*exception*",
+            ])
+        }))
+    }
+    finalizedBy 'jacocoTestCoverageVerification'
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            enabled = true
+            limit {
+                value = 'COVEREDRATIO'
+                minimum = 0.10
+            }
+            excludes = [
+                    "**.*AdvisorApplication*",
+                    "**.*Dto*",
+                    "**.*dto*",
+                    "**.*Request*",
+                    "**.*Response*",
+                    "**.*entity*",
+                    "**.*Config*",
+                    "**.*Exception*",
+                    "**.*exception*",
+            ]
+        }
+    }
 }
 
 group = 'org.ai'
@@ -53,4 +112,5 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+    finalizedBy 'jacocoTestReport'
 }
