@@ -16,9 +16,13 @@ public class Message {
     @Schema(description = "ChatGPT 의 답변 내용")
     private String content;
 
+    @Schema(description = "응답 시간")
+    private String time;
+
     @Builder
-    private Message(String role, String content) {
+    private Message(String role, String content, String time) {
         this.role = role;
         this.content = content;
+        this.time = time;
     }
 }

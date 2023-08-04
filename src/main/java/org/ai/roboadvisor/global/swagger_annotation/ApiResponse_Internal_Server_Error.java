@@ -1,4 +1,4 @@
-package org.ai.roboadvisor.global.annotation;
+package org.ai.roboadvisor.global.swagger_annotation;
 
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -23,5 +23,5 @@ import java.lang.annotation.*;
                                     }
                                 """
                 )))
-public @interface ApiResponse_InternalServerError {
+public @interface ApiResponse_Internal_Server_Error {
 }
