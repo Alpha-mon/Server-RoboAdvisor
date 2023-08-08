@@ -1,8 +1,5 @@
 package org.ai.roboadvisor.domain.chat.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ai.roboadvisor.domain.chat.dto.Message;
@@ -19,13 +16,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -36,11 +28,14 @@ import java.util.List;
 @Service
 public class ChatService {
 
+    private final ChatGPTService chatGPTService;
     private final ChatRepository chatRepository;
     private final MongoTemplate mongoTemplate;
     private final String ROLE_USER = "user";
     private final String ROLE_ASSISTANT = "assistant";
     private final String WELCOME_MESSAGE = "안녕하세요, 저는 AI로보어드바이저의 ChatGPT 서비스에요! 궁금한 점을 입력해주세요";
+    private final int KST_TO_UTC = 9;
+    private final int UTC_TO_KST = -9;
 
     @Value("${openai.model}")
     private String OPEN_AI_MODEL;
@@ -70,6 +65,8 @@ public class ChatService {
 
             // 2. Create Chat Order
             for (int i = 0; i < chatList.size(); i++) {
+                Chat thisChat = chatList.get(i);
+                thisChat.setTimeZone(thisChat.getTime(), UTC_TO_KST); // UTC -> KST
                 ChatResponse dto = ChatResponse.fromChat(chatList.get(i), chatList.size() - i);
                 result.add(dto);
             }
@@ -79,9 +76,8 @@ public class ChatService {
 
     public boolean saveChat(MessageRequest messageRequest) {
         Chat userChat = MessageRequest.toChat(messageRequest);
-
         try {
-            userChat.setTimeZone(userChat.getTime());
+            userChat.setTimeZone(userChat.getTime(), KST_TO_UTC);   // KST -> UTC
             chatRepository.save(userChat);
         } catch (RuntimeException e) {
             return false;
@@ -99,11 +95,11 @@ public class ChatService {
                         .build()))
                 .build();
 
-        String result = sendRequestToGpt(chatGptRequest).block();
+        ChatGptResponse chatGptResponse = chatGPTService.sendRequestToGPT(chatGptRequest).block();
 
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            ChatGptResponse chatGptResponse = objectMapper.readValue(result, ChatGptResponse.class);
+        if (chatGptResponse == null) {
+            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
+        } else {
             String responseRole = chatGptResponse.getChoices().get(0).getMessage().getRole();
             String responseMessage = chatGptResponse.getChoices().get(0).getMessage().getContent();
 
@@ -116,8 +112,12 @@ public class ChatService {
                     .time(now)
                     .build();
 
-            chat.setTimeZone(chat.getTime());
-            chatRepository.save(chat);
+            try {
+                chat.setTimeZone(chat.getTime(), KST_TO_UTC);  // KST -> UTC
+                chatRepository.save(chat);
+            } catch (RuntimeException e) {
+                throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
+            }
 
             // 2. Return Message DTO to client
             return Message.builder()
@@ -125,40 +125,18 @@ public class ChatService {
                     .content(responseMessage)
                     .time(now.toString())
                     .build();
-        } catch (JsonProcessingException | RuntimeException e) {
-            log.error("[Error in ChatService -> getMessageFromGpt] ", e);
-            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
     }
 
-    public Mono<String> sendRequestToGpt(ChatGptRequest gptRequest) {
-        Gson gson = new Gson();
-        String jsonToStr = gson.toJson(gptRequest);
-
-        WebClient webClient = WebClient.builder()
-                .baseUrl(OPEN_AI_URL)
-                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + OPEN_AI_SECRET_KEY)
-                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .build();
-
-        return webClient.post()
-                .body(BodyInserters.fromValue(jsonToStr))
-                .retrieve()
-                .bodyToMono(String.class);
-    }
-
-    public List<ChatResponse> clear(String email) {
-        // 1. Clear All data
+    public boolean clear(String email) {
+        // Clear All data
         try {
             chatRepository.deleteAllByEmail(email);
         } catch (RuntimeException e) {
-            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
+            return false;
         }
-
-        ChatResponse chatResponse = createAndSaveWelcomeMessage(email);
-        return List.of(chatResponse);
+        return true;
     }
-
 
     public ChatResponse createAndSaveWelcomeMessage(String email) {
         // 1. Create Chat Entity and Save
@@ -171,9 +149,9 @@ public class ChatService {
                 .build();
 
         try {
-            chat.setTimeZone(chat.getTime());   // UTC -> KST
+            chat.setTimeZone(chat.getTime(), KST_TO_UTC);   // KST -> UTC
             chatRepository.save(chat);
-            chat.setTimeZone(chat.getTime().minusHours(18)); // rollback time
+            chat.setTimeZone(chat.getTime(), UTC_TO_KST); // UTC -> KST
         } catch (RuntimeException e) {
             throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
         }

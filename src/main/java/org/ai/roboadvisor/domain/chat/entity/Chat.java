@@ -42,7 +42,11 @@ public class Chat {
      * Before save data, add 9 hours to KST timezone
      * MongoDB는 UTC Time zone을 따르기 때문에, KST와 맞추기 위해 9시간 추가
      */
-    public void setTimeZone(LocalDateTime time) {
-        this.time = time.plusHours(9);
+    public void setTimeZone(LocalDateTime time, int value) {
+        if (value >= 0) {
+            this.time = time.plusHours(value);
+        } else {
+            this.time = time.minusHours(-value);
+        }
     }
 }

@@ -23,7 +23,7 @@ public class MessageRequest {
     @NotBlank
     private String message;
 
-    @Schema(description = "메시지 입력 시간", example = "2023-08-04T04:20:19")
+    @Schema(description = "메시지 입력 시간", example = "2023-08-04 04:20:19")
     @NotBlank
     private String time;
 

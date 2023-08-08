@@ -12,16 +12,17 @@ import org.ai.roboadvisor.domain.chat.dto.Message;
 import org.ai.roboadvisor.domain.chat.dto.request.MessageRequest;
 import org.ai.roboadvisor.domain.chat.dto.response.ChatResponse;
 import org.ai.roboadvisor.domain.chat.service.ChatService;
-import org.ai.roboadvisor.global.swagger_annotation.ApiResponse_Internal_Server_Error;
 import org.ai.roboadvisor.global.common.dto.SuccessApiResponse;
 import org.ai.roboadvisor.global.exception.CustomException;
 import org.ai.roboadvisor.global.exception.ErrorCode;
 import org.ai.roboadvisor.global.exception.SuccessCode;
+import org.ai.roboadvisor.global.swagger_annotation.ApiResponse_Internal_Server_Error;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -89,15 +90,15 @@ public class ChatController {
 
         ResponseEntity<SuccessApiResponse<List<ChatResponse>>> response;
         if (chatResponseList.size() != 1) {
-            response = ResponseEntity.status(HttpStatus.CREATED)
+            response = ResponseEntity.status(HttpStatus.OK)
                     .body(SuccessApiResponse.success(SuccessCode.LOAD_CHAT_SUCCESS, chatResponseList));
         } else {
             if (chatResponseList.get(0).getOrder() == null) {
                 // This case is when the user enters the room at the first time.
-                response = ResponseEntity.status(HttpStatus.OK)
+                response = ResponseEntity.status(HttpStatus.CREATED)
                         .body(SuccessApiResponse.success(SuccessCode.WELCOME_MESSAGE_CREATED_SUCCESS, chatResponseList));
             } else {
-                response = ResponseEntity.status(HttpStatus.CREATED)
+                response = ResponseEntity.status(HttpStatus.OK)
                         .body(SuccessApiResponse.success(SuccessCode.LOAD_CHAT_SUCCESS, chatResponseList));
             }
         }
@@ -158,10 +159,14 @@ public class ChatController {
     @ApiResponse_Internal_Server_Error
     @GetMapping(value = "/clear/{userEmail}")
     public ResponseEntity<SuccessApiResponse<List<ChatResponse>>> clear(@PathVariable("userEmail") String email) {
-        List<ChatResponse> response = chatService.clear(email);
+        boolean clearResult = chatService.clear(email);
 
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(SuccessApiResponse.success(SuccessCode.CHAT_DELETED_SUCCESS, response));
+        if (clearResult) {
+            ChatResponse response = chatService.createAndSaveWelcomeMessage(email);
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(SuccessApiResponse.success(SuccessCode.CHAT_DELETED_SUCCESS, Collections.singletonList(response)));
+        } else {
+            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
     }
-
 }
