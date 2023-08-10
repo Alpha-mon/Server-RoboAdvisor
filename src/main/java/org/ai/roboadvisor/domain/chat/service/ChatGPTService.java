@@ -23,7 +23,7 @@ public class ChatGPTService {
         this.chatGPTWebClient = chatGPTWebClient;
     }
 
-    public Mono<ChatGptResponse> sendRequestToGPT(ChatGptRequest gptRequest) {
+    public Mono<ChatGptResponse> getMessageFromGPT(ChatGptRequest gptRequest) {
         Gson gson = new Gson();
         String jsonToStr = gson.toJson(gptRequest);
 

@@ -91,7 +91,7 @@ public class ChatService {
                         .build()))
                 .build();
 
-        ChatGptResponse chatGptResponse = chatGPTService.sendRequestToGPT(chatGptRequest).block();
+        ChatGptResponse chatGptResponse = chatGPTService.getMessageFromGPT(chatGptRequest).block();
 
         if (chatGptResponse == null) {
             throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
