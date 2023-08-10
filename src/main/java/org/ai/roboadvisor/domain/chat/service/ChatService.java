@@ -39,10 +39,6 @@ public class ChatService {
 
     @Value("${openai.model}")
     private String OPEN_AI_MODEL;
-    @Value("${openai.api.url}")
-    private String OPEN_AI_URL;
-    @Value("${openai.api.secret-key}")
-    private String OPEN_AI_SECRET_KEY;
 
     @Transactional
     public List<ChatResponse> getChatList(String email) {

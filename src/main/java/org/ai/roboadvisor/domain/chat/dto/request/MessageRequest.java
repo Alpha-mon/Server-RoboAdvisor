@@ -9,6 +9,7 @@ import org.ai.roboadvisor.domain.chat.entity.Chat;
 import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 
 @Getter
 @NoArgsConstructor
@@ -47,4 +48,18 @@ public class MessageRequest {
                 .build();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MessageRequest that = (MessageRequest) o;
+        return Objects.equals(email, that.email)
+                && Objects.equals(message, that.message)
+                && Objects.equals(time, that.time);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(email, message, time);
+    }
 }

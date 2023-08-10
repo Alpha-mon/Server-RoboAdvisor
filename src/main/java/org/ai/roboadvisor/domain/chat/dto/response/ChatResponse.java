@@ -11,14 +11,14 @@ public class ChatResponse {
 
     private Integer order;
     private String role;
-    private String message;
+    private String content;
     private String time;
 
     @Builder
-    private ChatResponse(Integer order, String role, String message, String time) {
+    private ChatResponse(Integer order, String role, String content, String time) {
         this.order = order;
         this.role = role;
-        this.message = message;
+        this.content = content;
         this.time = time;
     }
 
@@ -26,7 +26,7 @@ public class ChatResponse {
         return ChatResponse.builder()
                 .order(order)
                 .role(chat.getRole())
-                .message(chat.getMessage())
+                .content(chat.getMessage())
                 .time((chat.getTime().withNano(0)).toString())
                 .build();
     }

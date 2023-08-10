@@ -34,10 +34,12 @@ public class ChatController {
 
     private final ChatService chatService;
 
-    @Operation(summary = "채팅 메시지 조회", description = "사용자가 채팅 서비스 입장 시, 기존의 대화 내용을 불러온다. " +
-            "기존에 대화 내용이 존재하지 않는다면, 초기 메시지(Welcome Message)를 보내준다.\n\n" +
-            "order : 초기 메시지의 경우 null이며, 대화 내용을 불러오는 경우 숫자가 클수록 최근에 한 대화이다.\n\n" +
-            "role : user의 경우 사용자가 입력한 대화, role : assistant의 경우 ChatGPT가 응답하는 대화이다. ")
+    @Operation(summary = "채팅 메시지 조회", description = """
+            사용자가 채팅 서비스 입장 시, 기존의 대화 내용을 불러온다. 기존에 대화 내용이 존재하지 않는다면, 초기 메시지(Welcome Message)를 보내준다.
+
+            order : 초기 메시지의 경우 null이며, 대화 내용을 불러오는 경우 숫자가 클수록 최근에 한 대화이다.
+
+            role : user의 경우 사용자가 입력한 대화, role : assistant의 경우 ChatGPT가 응답하는 대화이다.""")
     @ApiResponse(responseCode = "200", description = "기존 대화 내용이 존재하는 경우, 불러온다",
             content = @Content(schema = @Schema(implementation = SuccessApiResponse.class),
                     examples = @ExampleObject(name = "example",
@@ -50,13 +52,13 @@ public class ChatController {
                                              {
                                                "order": 2,
                                                "role": "assistant",
-                                               "message": "국내 주식은 한국 내에서 운영되고 거래되는 주식을 말하며, 영향을 받는 경제, 법률, 규제 등은 대부분 한국에 관련된 것입니다. 국내 주식은 한국 증권거래소나 코스닥에 상장된 기업의 주식을 매매하며, 한국의 경제 동향과 내부 요인들에 따라 주가가 변동됩니다.\\n\\n반면에 해외 주식은 외국의 주식을 말하며, 국내외의 경제, 정치, 사회적 상황 등 다양한 요인에 영향을 받습니다. 해외 주식은 해당 국가의 증권거래소에 상장된 기업의 주식이나 외국에서 운영되는 거래소에서 거래될 수도 있습니다. 국내 주식보다는 해외 경제 동향이나 외부 요인에 영향을 받기 때문에 국내와는 별개의 주식 시장입니다.\\n\\n또한 해외 주식은 환율 변동에 따라 수익이나 손실이 발생할 수 있으며, 국내 주식보다 투자에 더 큰 위험이 따를 수 있습니다. 또한, 투자하기 위해서는 해당 국가의 법률, 규제, 세금 등을 이해하고 준수해야 하는 점도 주의해야 할 부분입니다.",
+                                               "content": "국내 주식은 한국 내에서 운영되고 거래되는 주식을 말하며, 영향을 받는 경제, 법률, 규제 등은 대부분 한국에 관련된 것입니다. 국내 주식은 한국 증권거래소나 코스닥에 상장된 기업의 주식을 매매하며, 한국의 경제 동향과 내부 요인들에 따라 주가가 변동됩니다.\\n\\n반면에 해외 주식은 외국의 주식을 말하며, 국내외의 경제, 정치, 사회적 상황 등 다양한 요인에 영향을 받습니다. 해외 주식은 해당 국가의 증권거래소에 상장된 기업의 주식이나 외국에서 운영되는 거래소에서 거래될 수도 있습니다. 국내 주식보다는 해외 경제 동향이나 외부 요인에 영향을 받기 때문에 국내와는 별개의 주식 시장입니다.\\n\\n또한 해외 주식은 환율 변동에 따라 수익이나 손실이 발생할 수 있으며, 국내 주식보다 투자에 더 큰 위험이 따를 수 있습니다. 또한, 투자하기 위해서는 해당 국가의 법률, 규제, 세금 등을 이해하고 준수해야 하는 점도 주의해야 할 부분입니다.",
                                                "time": "2023-08-04T21:24:21"
                                              },
                                              {
                                                "order": 1,
                                                "role": "user",
-                                               "message": "국내 해외 주식 차이가 뭐야?",
+                                               "content": "국내 해외 주식 차이가 뭐야?",
                                                "time": "2023-08-04T21:23:01"
                                              }
                                            ]
@@ -75,7 +77,7 @@ public class ChatController {
                                             {
                                               "order": null,
                                               "role": "assistant",
-                                              "message": "안녕하세요, 저는 AI로보어드바이저의 ChatGPT 서비스에요! 궁금한 점을 입력해주세요",
+                                              "content": "안녕하세요, 저는 AI로보어드바이저의 ChatGPT 서비스에요! 궁금한 점을 입력해주세요",
                                               "time": "2023-08-04T18:21:53"
                                             }
                                           ]
@@ -117,7 +119,7 @@ public class ChatController {
                                             "message" : "사용자의 채팅 메시지가 정상적으로 처리되었습니다",
                                             "data" : {
                                                 "role" : "assistant",
-                                                "message" : "주식에서 선물이란 ...을 의미합니다.",
+                                                "content" : "주식에서 선물이란 ...을 의미합니다.",
                                                 "time" : "2023-08-04 04:20:19"
                                             }
                                         }
@@ -136,8 +138,10 @@ public class ChatController {
         }
     }
 
-    @Operation(summary = "대화 내용 삭제", description = "버튼을 클릭하면, 이전 대화 내용이 전부 삭제된다.\n\n" +
-            "삭제됨과 동시에, data에 초기 메시지(Welcome Message)를 리스트 형식으로 담아서 다시 보내준다.")
+    @Operation(summary = "대화 내용 삭제", description = """
+            버튼을 클릭하면, 이전 대화 내용이 전부 삭제된다.
+
+            삭제됨과 동시에, data에 초기 메시지(Welcome Message)를 리스트 형식으로 담아서 다시 보내준다.""")
     @ApiResponse(responseCode = "200", description = "이전 대화 내용을 초기화한 뒤, 다시 초기 응답을 보내준다",
             content = @Content(schema = @Schema(implementation = SuccessApiResponse.class),
                     examples = @ExampleObject(name = "example", description = "예시",
@@ -149,7 +153,7 @@ public class ChatController {
                                             {
                                               "order": null,
                                               "role": "assistant",
-                                              "message": "안녕하세요, 저는 AI로보어드바이저의 ChatGPT 서비스에요! 궁금한 점을 입력해주세요",
+                                              "content": "안녕하세요, 저는 AI로보어드바이저의 ChatGPT 서비스에요! 궁금한 점을 입력해주세요",
                                               "time": "2023-08-04T22:11:08"
                                             }
                                           ]
@@ -163,6 +167,7 @@ public class ChatController {
 
         if (clearResult) {
             ChatResponse response = chatService.createAndSaveWelcomeMessage(email);
+            System.out.println("response.getOrder() = " + response.getOrder());
             return ResponseEntity.status(HttpStatus.OK)
                     .body(SuccessApiResponse.success(SuccessCode.CHAT_DELETED_SUCCESS, Collections.singletonList(response)));
         } else {
