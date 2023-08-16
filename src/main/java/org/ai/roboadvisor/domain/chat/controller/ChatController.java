@@ -130,7 +130,7 @@ public class ChatController {
     public ResponseEntity<SuccessApiResponse<Message>> sendChatBotMessage(@RequestBody MessageRequest messageRequest) {
         boolean saveResult = chatService.saveChat(messageRequest);
         if (saveResult) {
-            Message result = chatService.getMessageFromApi(messageRequest.getEmail(), messageRequest.getMessage());
+            Message result = chatService.getMessageFromApi(messageRequest.getEmail(), messageRequest.getContent());
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(SuccessApiResponse.success(SuccessCode.CHAT_CREATED_SUCCESS, result));
         } else {

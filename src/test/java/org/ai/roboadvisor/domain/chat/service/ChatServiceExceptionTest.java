@@ -50,7 +50,7 @@ class ChatServiceExceptionTest {
         // given
         MessageRequest messageRequest = MessageRequest.builder()
                 .email("test-user@google.com")
-                .message("hello test")
+                .content("hello test")
                 .time("2023-08-04 04:20:19")
                 .build();
 

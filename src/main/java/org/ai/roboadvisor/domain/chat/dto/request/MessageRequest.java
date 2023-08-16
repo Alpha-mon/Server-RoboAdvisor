@@ -22,16 +22,16 @@ public class MessageRequest {
 
     @Schema(description = "사용자의 챗봇 입력 메세지", example = "주식에서 선물거래의 의미는 무엇이니?")
     @NotBlank
-    private String message;
+    private String content;
 
     @Schema(description = "메시지 입력 시간", example = "2023-08-04 04:20:19")
     @NotBlank
     private String time;
 
     @Builder
-    private MessageRequest(String email, String message, String time) {
+    private MessageRequest(String email, String content, String time) {
         this.email = email;
-        this.message = message;
+        this.content = content;
         this.time = time;
     }
 
@@ -43,7 +43,7 @@ public class MessageRequest {
         return Chat.builder()
                 .email(messageRequest.getEmail())
                 .role("user")
-                .message(messageRequest.getMessage())
+                .message(messageRequest.getContent())
                 .time(dateTime)
                 .build();
     }
@@ -54,12 +54,12 @@ public class MessageRequest {
         if (o == null || getClass() != o.getClass()) return false;
         MessageRequest that = (MessageRequest) o;
         return Objects.equals(email, that.email)
-                && Objects.equals(message, that.message)
+                && Objects.equals(content, that.content)
                 && Objects.equals(time, that.time);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(email, message, time);
+        return Objects.hash(email, content, time);
     }
 }

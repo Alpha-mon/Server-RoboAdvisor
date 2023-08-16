@@ -155,7 +155,7 @@ class ChatControllerTest {
         // given
         MessageRequest messageRequest = MessageRequest.builder()
                 .email("test@test.com")
-                .message("테스트 메시지 입니다.")
+                .content("테스트 메시지 입니다.")
                 .time("2023-08-04 04:20:19")
                 .build();
 
@@ -172,7 +172,7 @@ class ChatControllerTest {
 
         // when
         Mockito.when(chatService.saveChat(messageRequest)).thenReturn(true);
-        Mockito.when(chatService.getMessageFromApi(messageRequest.getEmail(), messageRequest.getMessage()))
+        Mockito.when(chatService.getMessageFromApi(messageRequest.getEmail(), messageRequest.getContent()))
                 .thenReturn(message);
 
         // then
@@ -194,7 +194,7 @@ class ChatControllerTest {
         // given
         MessageRequest messageRequest = MessageRequest.builder()
                 .email("test@test.com")
-                .message("테스트 메시지 입니다.")
+                .content("테스트 메시지 입니다.")
                 .time("2023-08-04 04:20:19")
                 .build();
 

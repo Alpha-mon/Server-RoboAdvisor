@@ -179,7 +179,7 @@ class ChatServiceTest {
         String testTime = "2023-08-04 23:05:24";
         MessageRequest messageRequest = MessageRequest.builder()
                 .email(testEmail)
-                .message(testMsg)
+                .content(testMsg)
                 .time(testTime)
                 .build();
         // when
