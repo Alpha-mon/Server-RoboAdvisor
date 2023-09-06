@@ -71,6 +71,11 @@ java {
     sourceCompatibility = '17'
 }
 
+// To remove plain.jar in build/libs
+jar {
+    enabled = false
+}
+
 configurations {
     compileOnly {
         extendsFrom annotationProcessor
