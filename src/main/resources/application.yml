@@ -1,0 +1,32 @@
+# default settings
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+
+# Activate the 'local' and 'common' profiles by default
+spring:
+  profiles:
+    active:
+      - local
+    group:
+      local:
+        - local
+        - common
+      test:
+        - test
+        - common
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test
