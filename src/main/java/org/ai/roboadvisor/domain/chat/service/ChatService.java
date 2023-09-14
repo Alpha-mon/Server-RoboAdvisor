@@ -48,11 +48,11 @@ public class ChatService {
     private String OPEN_AI_MODEL;
 
     @Transactional
-    public List<ChatListResponse> getAllChatOfUser(String email) {
+    public List<ChatListResponse> getAllChatOfUser(String nickname) {
         List<ChatListResponse> result = new ArrayList<>();
 
-        if (!checkIfChatIsExistsInDb(email)) {
-            ChatListResponse chatResponse = createAndSaveWelcomeMessage(email);
+        if (!checkIfChatIsExistsInDb(nickname)) {
+            ChatListResponse chatResponse = createAndSaveWelcomeMessage(nickname);
             result.add(chatResponse);
         } else {
             // 1. Sorting Data order by time and _id
@@ -61,7 +61,7 @@ public class ChatService {
                     Sort.Order.desc("_id") // Ignore milliseconds, so order _id if time is same
             );
             Query query = new Query().with(sort);
-            query.addCriteria(Criteria.where("email").is(email));
+            query.addCriteria(Criteria.where("nickname").is(nickname));
             List<Chat> chatList = mongoTemplate.find(query, Chat.class);
 
             // 2. Create Chat Order
@@ -93,7 +93,7 @@ public class ChatService {
         }
     }
 
-    public ChatResponse getMessageFromApi(String userEmail, String message) {
+    public ChatResponse getMessageFromApi(String nickname, String message) {
         ChatGptRequest chatGptRequest = ChatGptRequest
                 .builder()
                 .model(OPEN_AI_MODEL)
@@ -114,7 +114,7 @@ public class ChatService {
             // 1. save message into DB
             LocalDateTime now = LocalDateTime.now().withNano(0);    // ignore milliseconds
             Chat chat = Chat.builder()
-                    .email(userEmail)
+                    .nickname(nickname)
                     .role(responseRole)
                     .message(responseMessage)
                     .time(now)
@@ -146,13 +146,13 @@ public class ChatService {
         }
     }
 
-    public ChatListResponse createAndSaveWelcomeMessage(String email) {
+    public ChatListResponse createAndSaveWelcomeMessage(String nickname) {
         String WELCOME_MESSAGE = "안녕하세요, 저는 AI로보어드바이저의 ChatGPT 서비스에요! 궁금한 점을 입력해주세요";
 
         // 1. Create Chat Entity and Save
         LocalDateTime now = LocalDateTime.now().withNano(0);    // ignore milliseconds
         Chat chat = Chat.builder()
-                .email(email)
+                .nickname(nickname)
                 .role(ROLE_ASSISTANT)
                 .message(WELCOME_MESSAGE)
                 .time(now)
@@ -181,6 +181,6 @@ public class ChatService {
     }
 
     private boolean checkIfChatIsExistsInDb(String email) {
-        return chatRepository.existsChatByEmail(email);
+        return chatRepository.existsChatByNickname(email);
     }
 }

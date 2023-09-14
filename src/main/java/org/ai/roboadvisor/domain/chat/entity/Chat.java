@@ -18,8 +18,8 @@ public class Chat {
     @Id
     private String _id; // this will be automatically set by MongoDB if you don't set it
 
-    @Field("email")
-    private String email;
+    @Field("nickname")
+    private String nickname;
 
     @Field("role")
     private String role;
@@ -31,8 +31,8 @@ public class Chat {
     private LocalDateTime time;
 
     @Builder
-    private Chat(String email, String role, String message, LocalDateTime time) {
-        this.email = email;
+    private Chat(String nickname, String role, String message, LocalDateTime time) {
+        this.nickname = nickname;
         this.role = role;
         this.message = message;
         this.time = time;

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ChatRepository extends MongoRepository<Chat, String> {
 
-    boolean existsChatByEmail(String userEmail);
+    boolean existsChatByNickname(String nickname);
 
     @Query(value = "{ 'email' : ?0 }", delete = true)
     long deleteAllByEmail(String email);

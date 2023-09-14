@@ -39,12 +39,15 @@ public class ChatController {
     private final int TIME_INPUT_INVALID = -1;
     private final int INTERNAL_SERVER_ERROR = -100;
 
-    @Operation(summary = "채팅 메시지 조회", description = """
-            사용자가 채팅 서비스 입장 시, 기존의 대화 내용을 불러온다. 기존에 대화 내용이 존재하지 않는다면, 초기 메시지(Welcome Message)를 보내준다.
+    @Operation(summary = "채팅 서비스로 입장하는 경우", description = """
+            사용자가 채팅 서비스 입장 시, 기존의 대화 내용을 불러온다.
+                        
+            기존에 대화 내용이 존재하지 않는다면, 초기 메시지(Welcome Message)를 보내준다.
 
-            order : 초기 메시지의 경우 null이며, 대화 내용을 불러오는 경우 숫자가 클수록 최근에 한 대화이다.
+            order : 초기 메시지의 경우 null이며, 대화 내용을 불러오는 경우에는 숫자가 클수록 최근에 한 대화이다.
 
-            role : user의 경우 사용자가 입력한 대화, role : assistant의 경우 ChatGPT가 응답하는 대화이다.""")
+            role : user의 경우 사용자가 입력한 대화, role : assistant의 경우 ChatGPT가 응답하는 대화이다.
+            """)
     @ApiResponse(responseCode = "200", description = "사용자가 채팅방에 처음 입장한 경우, 챗봇의 Welcome Message를 보낸다.",
             content = @Content(schema = @Schema(implementation = SuccessApiResponse.class),
                     examples = @ExampleObject(name = "example",
@@ -89,17 +92,17 @@ public class ChatController {
                                                     "order": null,
                                                     "role": "assistant",
                                                     "content": "안녕하세요, 저는 AI로보어드바이저의 ChatGPT 서비스에요! 궁금한 점을 입력해주세요",
-                                                    "time": "2023-09-15 00:43:36"
+                                                    "time": "2023-09-15 01:28:14"
                                                 }
                                             ]
                                         }
                                     """
                     )))
     @ApiResponse_Internal_Server_Error
-    @GetMapping(value = "/{userEmail}")
+    @GetMapping(value = "/{nickname}")
     public ResponseEntity<SuccessApiResponse<List<ChatListResponse>>> getAllChatOfUser(
-            @PathVariable("userEmail") String email) {
-        List<ChatListResponse> chatListResponses = chatService.getAllChatOfUser(email);
+            @PathVariable("nickname") String nickname) {
+        List<ChatListResponse> chatListResponses = chatService.getAllChatOfUser(nickname);
 
         ResponseEntity<SuccessApiResponse<List<ChatListResponse>>> response;
         if (chatMessageIsMoreThanOne(chatListResponses)) {
@@ -130,8 +133,8 @@ public class ChatController {
                                             "message": "사용자의 채팅 메시지가 정상적으로 처리되었습니다",
                                             "data": {
                                                 "role": "assistant",
-                                                "content": "선물 거래란 어떤 자산(예: 주식, 원자재)에 대해 향후 일정한 날짜에 미리 약정된 가격으로 거래하는 것을 말합니다. 이는 향후 주가의 상승 또는 하락으로부터의 리스크를 회피하는 투자 방법 중 하나입니다. 선물 거래는 특히 변동성이 큰 주식 등의 투자에서 사용되며, 이를 통해 투자자는 예상치 못한 가격 변동에 대한 보호를 받을 수 있습니다.",
-                                                "time": "2023-09-15 00:43:13"
+                                                "content": "주식에서 선물거래란, 미래의 특정 시점에서 정해진 가격에 일정한 양의 주식을 매수 또는 매도하는 계약을 말합니다. 이는 미래의 주가 움직임에 대한 예측이나 투자 전략을 기반으로 한 거래이며, 주가 상승이나 하락에 따른 이익을 추구하는 목적으로 사용될 수 있습니다. 선물거래는 주식 시장 외에도 다양한 자산에 대해 진행될 수 있으며, 투기적인 요소가 높은 거래 방식 중 하나입니다.",
+                                                "time": "2023-09-15 01:28:51"
                                             }
                                         }
                                     """
@@ -154,7 +157,7 @@ public class ChatController {
         int saveResult = chatService.saveChat(messageRequest);
 
         if (saveResult == SUCCESS) {
-            ChatResponse result = chatService.getMessageFromApi(messageRequest.getEmail(), messageRequest.getContent());
+            ChatResponse result = chatService.getMessageFromApi(messageRequest.getNickname(), messageRequest.getContent());
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(SuccessApiResponse.success(SuccessCode.CHAT_CREATED_SUCCESS, result));
         } else if (saveResult == TIME_INPUT_INVALID) {
@@ -189,11 +192,11 @@ public class ChatController {
     @ApiResponse_Internal_Server_Error
     @PostMapping(value = "/clear")
     public ResponseEntity<SuccessApiResponse<List<ChatListResponse>>> clear(@RequestBody ClearRequest clearRequest) {
-        String userEmail = clearRequest.getEmail();
-        boolean clearResult = chatService.clear(userEmail);
+        String userNickname = clearRequest.getNickname();
+        boolean clearResult = chatService.clear(userNickname);
 
         if (clearResult) {
-            ChatListResponse response = chatService.createAndSaveWelcomeMessage(userEmail);
+            ChatListResponse response = chatService.createAndSaveWelcomeMessage(userNickname);
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(SuccessApiResponse.success(SuccessCode.CHAT_DELETED_SUCCESS, Collections.singletonList(response)));
         } else {
