@@ -61,7 +61,7 @@ class ChatControllerTest {
                 .build());
 
         // when
-        Mockito.when(chatService.getChatList(testEmail)).thenReturn(responseList);
+        Mockito.when(chatService.getAllChatOfUser(testEmail)).thenReturn(responseList);
 
         // then
         mvc.perform(MockMvcRequestBuilders.get("/api/chat/{userEmail}", testEmail))
@@ -88,7 +88,7 @@ class ChatControllerTest {
                 .build());
 
         // when
-        Mockito.when(chatService.getChatList(testEmail)).thenReturn(responseList);
+        Mockito.when(chatService.getAllChatOfUser(testEmail)).thenReturn(responseList);
 
         // then
         mvc.perform(MockMvcRequestBuilders.get("/api/chat/{userEmail}", testEmail))
@@ -129,7 +129,7 @@ class ChatControllerTest {
         );
 
         // when
-        Mockito.when(chatService.getChatList(testEmail)).thenReturn(responseList);
+        Mockito.when(chatService.getAllChatOfUser(testEmail)).thenReturn(responseList);
 
         // given
         mvc.perform(MockMvcRequestBuilders.get("/api/chat/{userEmail}", testEmail))

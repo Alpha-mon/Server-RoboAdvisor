@@ -61,7 +61,7 @@ class ChatServiceTest {
         String testEmail = "test@test.com";
 
         // when
-        List<ChatResponse> list = chatService.getChatList(testEmail);
+        List<ChatResponse> list = chatService.getAllChatOfUser(testEmail);
 
         // then
         assertThat(list.isEmpty()).isFalse();   // check data is exists
@@ -102,7 +102,7 @@ class ChatServiceTest {
         chatRepository.saveAll(chatList);
 
         // when
-        List<ChatResponse> resultList = chatService.getChatList(testEmail);
+        List<ChatResponse> resultList = chatService.getAllChatOfUser(testEmail);
 
         // then
         assertThat(resultList.size()).isEqualTo(3);
