@@ -13,8 +13,8 @@ public enum ErrorCode {
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "C003", "서버 내부 오류"),
 
     // user
-    EMAIL_ALREADY_EXIST_IN_DB(HttpStatus.BAD_REQUEST, "U001", "이미 가입된 이메일입니다"),
-    NICKNAME_ALREADY_EXIST_IN_DB(HttpStatus.BAD_REQUEST, "U002", "이미 가입된 닉네임입니다"),
+    EMAIL_ALREADY_EXIST_IN_DB(HttpStatus.BAD_REQUEST, "U001", "이미 존재하는 이메일입니다"),
+    NICKNAME_ALREADY_EXIST_IN_DB(HttpStatus.BAD_REQUEST, "U002", "이미 존재하는 닉네임입니다"),
     USER_NOT_EXISTED(HttpStatus.BAD_REQUEST, "U003", "가입된 사용자의 정보가 존재하지 않습니다");
 
     private final HttpStatus httpStatus;

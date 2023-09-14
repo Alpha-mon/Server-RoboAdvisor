@@ -19,6 +19,7 @@ public enum SuccessCode {
     CHAT_DELETED_SUCCESS(HttpStatus.OK.value(), "기존 대화 내용이 정상적으로 삭제되었습니다"),
 
     // user
+    NICKNAME_AVAILABLE(HttpStatus.OK.value(), "사용 가능한 닉네임입니다"),
     LOGIN_SUCCESS(HttpStatus.OK.value(), "로그인에 성공하셨습니다"),
 
     /**
