@@ -83,7 +83,7 @@ public class ChatService {
             return TIME_INPUT_INVALID; // or handle the error differently
         }
 
-        Chat userChat = MessageRequest.toChatEntity(messageRequest);
+        Chat userChat = MessageRequest.toChatEntity(messageRequest, dateTimeOptional.get());
         try {
             userChat.setTimeZone(userChat.getTime(), KST_TO_UTC);   // KST -> UTC
             chatRepository.save(userChat);
@@ -148,7 +148,7 @@ public class ChatService {
 
     public ChatListResponse createAndSaveWelcomeMessage(String email) {
         String WELCOME_MESSAGE = "안녕하세요, 저는 AI로보어드바이저의 ChatGPT 서비스에요! 궁금한 점을 입력해주세요";
-        
+
         // 1. Create Chat Entity and Save
         LocalDateTime now = LocalDateTime.now().withNano(0);    // ignore milliseconds
         Chat chat = Chat.builder()

@@ -34,14 +34,12 @@ public class MessageRequest {
         this.time = time;
     }
 
-    public static Chat toChatEntity(MessageRequest messageRequest) {
-        LocalDateTime dateTime = LocalDateTime.now().withNano(0);
-
+    public static Chat toChatEntity(MessageRequest messageRequest, LocalDateTime time) {
         return Chat.builder()
                 .email(messageRequest.getEmail())
                 .role("user")
                 .message(messageRequest.getContent())
-                .time(dateTime)
+                .time(time)
                 .build();
     }
 
