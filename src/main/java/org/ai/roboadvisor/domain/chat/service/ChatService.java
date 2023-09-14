@@ -6,6 +6,7 @@ import org.ai.roboadvisor.domain.chat.dto.Message;
 import org.ai.roboadvisor.domain.chat.dto.request.ChatGptRequest;
 import org.ai.roboadvisor.domain.chat.dto.request.MessageRequest;
 import org.ai.roboadvisor.domain.chat.dto.response.ChatGptResponse;
+import org.ai.roboadvisor.domain.chat.dto.response.ChatListResponse;
 import org.ai.roboadvisor.domain.chat.dto.response.ChatResponse;
 import org.ai.roboadvisor.domain.chat.entity.Chat;
 import org.ai.roboadvisor.domain.chat.repository.ChatRepository;
@@ -20,8 +21,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -33,22 +37,23 @@ public class ChatService {
     private final MongoTemplate mongoTemplate;
     private final String ROLE_USER = "user";
     private final String ROLE_ASSISTANT = "assistant";
-    private final String WELCOME_MESSAGE = "안녕하세요, 저는 AI로보어드바이저의 ChatGPT 서비스에요! 궁금한 점을 입력해주세요";
     private final int KST_TO_UTC = 9;
     private final int UTC_TO_KST = -9;
+
+    private final int SUCCESS = 0;
+    private final int TIME_INPUT_INVALID = -1;
+    private final int INTERNAL_SERVER_ERROR = -100;
 
     @Value("${openai.model}")
     private String OPEN_AI_MODEL;
 
     @Transactional
-    public List<ChatResponse> getChatList(String email) {
-        List<ChatResponse> result = new ArrayList<>();
+    public List<ChatListResponse> getAllChatOfUser(String email) {
+        List<ChatListResponse> result = new ArrayList<>();
 
-        boolean existsChatInDb = chatRepository.existsChatByEmail(email);
-        if (!existsChatInDb) {
-            ChatResponse chatResponse = createAndSaveWelcomeMessage(email);
+        if (!checkIfChatIsExistsInDb(email)) {
+            ChatListResponse chatResponse = createAndSaveWelcomeMessage(email);
             result.add(chatResponse);
-
         } else {
             // 1. Sorting Data order by time and _id
             Sort sort = Sort.by(
@@ -63,25 +68,32 @@ public class ChatService {
             for (int i = 0; i < chatList.size(); i++) {
                 Chat thisChat = chatList.get(i);
                 thisChat.setTimeZone(thisChat.getTime(), UTC_TO_KST); // UTC -> KST
-                ChatResponse dto = ChatResponse.fromChat(chatList.get(i), chatList.size() - i);
+                ChatListResponse dto = ChatListResponse.fromChatEntity(chatList.get(i), chatList.size() - i);
                 result.add(dto);
             }
         }
         return result;
     }
 
-    public boolean saveChat(MessageRequest messageRequest) {
-        Chat userChat = MessageRequest.toChat(messageRequest);
+    public int saveChat(MessageRequest messageRequest) {
+
+        // MessageRequest time format 검증
+        Optional<LocalDateTime> dateTimeOptional = parseDateTime(messageRequest.getTime());
+        if (dateTimeOptional.isEmpty()) {
+            return TIME_INPUT_INVALID; // or handle the error differently
+        }
+
+        Chat userChat = MessageRequest.toChatEntity(messageRequest);
         try {
             userChat.setTimeZone(userChat.getTime(), KST_TO_UTC);   // KST -> UTC
             chatRepository.save(userChat);
+            return SUCCESS;
         } catch (RuntimeException e) {
-            return false;
+            return INTERNAL_SERVER_ERROR;
         }
-        return true;
     }
 
-    public Message getMessageFromApi(String userEmail, String message) {
+    public ChatResponse getMessageFromApi(String userEmail, String message) {
         ChatGptRequest chatGptRequest = ChatGptRequest
                 .builder()
                 .model(OPEN_AI_MODEL)
@@ -116,10 +128,10 @@ public class ChatService {
             }
 
             // 2. Return Message DTO to client
-            return Message.builder()
+            return ChatResponse.builder()
                     .role(responseRole)
                     .content(responseMessage)
-                    .time(now.toString())
+                    .time(now)
                     .build();
         }
     }
@@ -128,13 +140,15 @@ public class ChatService {
         // Clear All data
         try {
             chatRepository.deleteAllByEmail(email);
+            return true;
         } catch (RuntimeException e) {
             return false;
         }
-        return true;
     }
 
-    public ChatResponse createAndSaveWelcomeMessage(String email) {
+    public ChatListResponse createAndSaveWelcomeMessage(String email) {
+        String WELCOME_MESSAGE = "안녕하세요, 저는 AI로보어드바이저의 ChatGPT 서비스에요! 궁금한 점을 입력해주세요";
+        
         // 1. Create Chat Entity and Save
         LocalDateTime now = LocalDateTime.now().withNano(0);    // ignore milliseconds
         Chat chat = Chat.builder()
@@ -153,7 +167,20 @@ public class ChatService {
         }
 
         // 2. Entity -> DTO and Return Welcome Message
-        return ChatResponse.fromChat(chat, null);
+        return ChatListResponse.fromChatEntity(chat, null);
     }
 
+    private Optional<LocalDateTime> parseDateTime(String timeString) {
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            return Optional.of(LocalDateTime.parse(timeString, formatter));
+        } catch (DateTimeParseException e) {
+            log.error(">> Failed to parse date-time string.", e);
+            return Optional.empty();
+        }
+    }
+
+    private boolean checkIfChatIsExistsInDb(String email) {
+        return chatRepository.existsChatByEmail(email);
+    }
 }

@@ -13,9 +13,6 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @Service
 public class ChatGPTService {
-    /**
-     * Test Code 작성을 위해, ChatService에서 분리
-     */
 
     private final WebClient chatGPTWebClient;
 

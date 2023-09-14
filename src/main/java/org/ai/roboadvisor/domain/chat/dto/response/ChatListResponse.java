@@ -10,8 +10,8 @@ import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
-public class ChatResponse {
-
+public class ChatListResponse {
+    private Integer order;
     private String role;
     private String content;
 
@@ -19,14 +19,16 @@ public class ChatResponse {
     private LocalDateTime time;
 
     @Builder
-    private ChatResponse(String role, String content, LocalDateTime time) {
+    private ChatListResponse(Integer order, String role, String content, LocalDateTime time) {
+        this.order = order;
         this.role = role;
         this.content = content;
         this.time = time;
     }
 
-    public static ChatResponse fromChatEntity(Chat chat) {
-        return ChatResponse.builder()
+    public static ChatListResponse fromChatEntity(Chat chat, Integer order) {
+        return ChatListResponse.builder()
+                .order(order)
                 .role(chat.getRole())
                 .content(chat.getMessage())
                 .time(chat.getTime())

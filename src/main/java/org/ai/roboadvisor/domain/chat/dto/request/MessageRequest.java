@@ -8,7 +8,6 @@ import org.ai.roboadvisor.domain.chat.entity.Chat;
 
 import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 @Getter
@@ -35,10 +34,8 @@ public class MessageRequest {
         this.time = time;
     }
 
-    public static Chat toChat(MessageRequest messageRequest) {
-        // Parse String time to LocalDateTime
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        LocalDateTime dateTime = LocalDateTime.parse(messageRequest.getTime(), formatter);
+    public static Chat toChatEntity(MessageRequest messageRequest) {
+        LocalDateTime dateTime = LocalDateTime.now().withNano(0);
 
         return Chat.builder()
                 .email(messageRequest.getEmail())
