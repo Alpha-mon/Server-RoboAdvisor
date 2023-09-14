@@ -17,12 +17,22 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    public int signUp(SignUpRequest signUpRequest) {
-        int SIGNUP_SUCCESS = 0;
-        int INTERNAL_SERVER_ERROR = 1;
-        int EMAIL_ALREADY_EXIST_IN_DB = 2;
-        int NICKNAME_ALREADY_EXIST_IN_DB = 3;
+    private final int SUCCESS = 0;
+    private final int EMAIL_ALREADY_EXIST_IN_DB = -1;
+    private final int NICKNAME_ALREADY_EXIST_IN_DB = -2;
+    private final int USER_NOT_EXISTED = -3;
+    private final int INTERNAL_SERVER_ERROR = -100;
 
+
+    public int checkUserNickname(String nickname) {
+        boolean checkNicknameInDb = checkNicknameIsDuplicated(nickname);
+        if (checkNicknameInDb) {
+            return NICKNAME_ALREADY_EXIST_IN_DB;
+        }
+        return SUCCESS;
+    }
+
+    public int signUp(SignUpRequest signUpRequest) {
         String email = signUpRequest.getEmail();
         String nickname = signUpRequest.getNickname();
         boolean checkEmailInDb = checkEmailIsDuplicated(email);
@@ -42,13 +52,10 @@ public class UserService {
             log.error(">> Exception in save user entity: ", e);
             return INTERNAL_SERVER_ERROR;
         }
-        return SIGNUP_SUCCESS;
+        return SUCCESS;
     }
 
     public int signIn(SignInRequest signInRequest) {
-        int LOGIN_SUCCESS = 0;
-        int USER_NOT_EXISTED = 1;
-
         String email = signInRequest.getEmail();
         String password = signInRequest.getPassword();
 
@@ -57,7 +64,7 @@ public class UserService {
             // 가입된 유저가 없다.
             return USER_NOT_EXISTED;
         } else {
-            return LOGIN_SUCCESS;
+            return SUCCESS;
         }
     }
 
