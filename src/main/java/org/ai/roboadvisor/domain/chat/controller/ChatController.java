@@ -28,7 +28,7 @@ import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
-@Tag(name = "chat-bot", description = "ChatGPT를 이용한 챗봇 서비스")
+@Tag(name = "chat-bot", description = "ChatGPT를 이용한 챗봇 API")
 @RestController
 @RequestMapping("/api/chat")
 public class ChatController {

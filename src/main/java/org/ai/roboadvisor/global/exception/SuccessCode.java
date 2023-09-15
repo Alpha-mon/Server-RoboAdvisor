@@ -30,7 +30,10 @@ public enum SuccessCode {
     CHAT_DELETED_SUCCESS(HttpStatus.CREATED.value(), "기존 대화 내용이 정상적으로 삭제되었습니다"),
 
     // user
-    SIGNUP_SUCCESS(HttpStatus.CREATED.value(), "회원가입이 정상적으로 처리되었습니다");
+    SIGNUP_SUCCESS(HttpStatus.CREATED.value(), "회원가입이 정상적으로 처리되었습니다"),
+
+    // tendency
+    TENDENCY_UPDATE_SUCCESS(HttpStatus.CREATED.value(), "투자 성향 테스트 결과가 정상적으로 등록되었습니다");
 
 
     private final int code;
