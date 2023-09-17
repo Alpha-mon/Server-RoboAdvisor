@@ -1,4 +1,4 @@
-package org.ai.roboadvisor.domain.chat.config;
+package org.ai.roboadvisor.global.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
