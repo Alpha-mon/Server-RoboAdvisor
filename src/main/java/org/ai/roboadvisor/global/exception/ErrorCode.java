@@ -18,7 +18,10 @@ public enum ErrorCode {
     USER_NOT_EXISTED(HttpStatus.BAD_REQUEST, "U003", "가입된 사용자의 정보가 존재하지 않습니다"),
 
     // chat
-    TIME_INPUT_INVALID(HttpStatus.BAD_REQUEST, "CH01", "time 형식을 yyyy-MM-dd HH:mm:ss으로 작성해 주세요");
+    TIME_INPUT_INVALID(HttpStatus.BAD_REQUEST, "CH01", "time 형식을 yyyy-MM-dd HH:mm:ss으로 작성해 주세요"),
+
+    // community
+    USER_HAS_NOT_AUTHORIZED(HttpStatus.UNAUTHORIZED, "CO01", "게시글 수정 혹은 삭제 권한이 존재하지 않습니다");
 
     private final HttpStatus httpStatus;
     private final String type;

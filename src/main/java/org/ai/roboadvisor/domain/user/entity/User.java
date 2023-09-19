@@ -38,7 +38,7 @@ public class User {
     @Column(nullable = false, length = 10)
     private String gender;
 
-    @Column(nullable = false, length = 30)
+    @Column(nullable = true, length = 30)
     private String career;
 
     @Builder
