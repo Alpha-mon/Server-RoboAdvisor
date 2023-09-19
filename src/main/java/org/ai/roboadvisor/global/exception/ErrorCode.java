@@ -21,7 +21,10 @@ public enum ErrorCode {
     TIME_INPUT_INVALID(HttpStatus.BAD_REQUEST, "CH01", "time 형식을 yyyy-MM-dd HH:mm:ss으로 작성해 주세요"),
 
     // community
-    USER_HAS_NOT_AUTHORIZED(HttpStatus.UNAUTHORIZED, "CO01", "게시글 수정 혹은 삭제 권한이 존재하지 않습니다");
+    USER_HAS_NOT_AUTHORIZED(HttpStatus.UNAUTHORIZED, "CO01", "게시글 수정 혹은 삭제 권한이 존재하지 않습니다"),
+
+    // tendency
+    TENDENCY_INPUT_INVALID(HttpStatus.BAD_REQUEST, "TE01", "잘못된 투자 성향 형식이 입력되었습니다");
 
     private final HttpStatus httpStatus;
     private final String type;

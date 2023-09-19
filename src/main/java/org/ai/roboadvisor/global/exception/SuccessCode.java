@@ -37,8 +37,10 @@ public enum SuccessCode {
     SIGNUP_SUCCESS(HttpStatus.CREATED.value(), "회원가입이 정상적으로 처리되었습니다"),
 
     // community
-    POST_CREATED_SUCCESS(HttpStatus.CREATED.value(), "게시글이 정상적으로 등록되었습니다");
+    POST_CREATED_SUCCESS(HttpStatus.CREATED.value(), "게시글이 정상적으로 등록되었습니다"),
 
+    // tendency
+    TENDENCY_UPDATE_SUCCESS(HttpStatus.CREATED.value(), "투자 성향 테스트 결과가 정상적으로 등록되었습니다");
 
     private final int code;
     private final String message;

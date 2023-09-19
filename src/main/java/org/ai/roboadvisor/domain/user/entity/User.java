@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -11,6 +12,7 @@ import java.time.LocalDate;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)  // 인자 없는 기본 생성자 필요
 @Entity
+@DynamicUpdate
 @Table(name = "users",
         uniqueConstraints = {
                 @UniqueConstraint(name = "UniqueNickName", columnNames = {"nickname"}),
@@ -41,14 +43,23 @@ public class User {
     @Column(nullable = true, length = 30)
     private String career;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = true, length = 20)
+    private Tendency tendency;
+
     @Builder
     private User(String email, String password,
-                 String nickname, LocalDate birth, String gender, String career) {
+                 String nickname, LocalDate birth, String gender, String career, Tendency tendency) {
         this.email = email;
         this.password = password;
         this.nickname = nickname;
         this.birth = birth;
         this.gender = gender;
         this.career = career;
+        this.tendency = tendency;
+    }
+
+    public void setTendency(Tendency tendency) {
+        this.tendency = tendency;
     }
 }

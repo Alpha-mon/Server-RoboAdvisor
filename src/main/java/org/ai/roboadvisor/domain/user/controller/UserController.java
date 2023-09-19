@@ -24,7 +24,7 @@ import javax.validation.Valid;
 
 @Slf4j
 @RequiredArgsConstructor
-@Tag(name = "user", description = "회원가입 및 로그인 수행")
+@Tag(name = "user", description = "닉네임 중복 검사, 회원가입 및 로그인 API")
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
