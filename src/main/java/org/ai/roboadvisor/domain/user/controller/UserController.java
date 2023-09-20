@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ai.roboadvisor.domain.user.dto.request.SignInRequest;
 import org.ai.roboadvisor.domain.user.dto.request.SignUpRequest;
+import org.ai.roboadvisor.domain.user.dto.response.SignInResponse;
 import org.ai.roboadvisor.domain.user.service.UserService;
 import org.ai.roboadvisor.global.common.dto.SuccessApiResponse;
 import org.ai.roboadvisor.global.exception.CustomException;
@@ -124,7 +125,11 @@ public class UserController {
     }
 
     @Operation(summary = "로그인", description = "로그인을 수행하는 로직")
-    @ApiResponse(responseCode = "200", description = "로그인에 성공한 경우",
+    @ApiResponse(responseCode = "200", description = """
+            로그인에 성공한 경우:
+                        
+            로그인 한 사용자의 nickname, tendency 정보를 data에 담아서 반환한다.
+            """,
             content = @Content(schema = @Schema(implementation = SuccessApiResponse.class),
                     examples = @ExampleObject(name = "example",
                             description = "로그인에 성공한 경우 응답 예시",
@@ -132,7 +137,10 @@ public class UserController {
                                         {
                                             "code": 200,
                                             "message": "로그인에 성공하셨습니다",
-                                            "data": null
+                                            "data": {
+                                                "nickname": "testUser",
+                                                "tendency": "MONKEY"
+                                            }
                                         }
                                     """
                     )))
@@ -149,14 +157,10 @@ public class UserController {
                                     """
                     )))
     @PostMapping("/signin")
-    public ResponseEntity<SuccessApiResponse<?>> signIn(@Valid @RequestBody SignInRequest signInRequest) {
-        int result = userService.signIn(signInRequest);
-        if (result == SUCCESS.getValue()) {
-            return ResponseEntity.status(HttpStatus.OK)
-                    .body(SuccessApiResponse.success(SuccessCode.LOGIN_SUCCESS));
-        } else {
-            throw new CustomException(ErrorCode.USER_NOT_EXISTED);
-        }
+    public ResponseEntity<SuccessApiResponse<SignInResponse>> signIn(@Valid @RequestBody SignInRequest signInRequest) {
+        SignInResponse signInResponse = userService.signIn(signInRequest);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(SuccessApiResponse.success(SuccessCode.LOGIN_SUCCESS, signInResponse));
     }
 
 }
