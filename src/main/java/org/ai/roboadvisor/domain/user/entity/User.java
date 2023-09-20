@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.ai.roboadvisor.domain.tendency.entity.Tendency;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
@@ -43,8 +44,8 @@ public class User {
     @Column(nullable = true, length = 30)
     private String career;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = true, length = 20)
+    @Enumerated(EnumType.STRING)
     private Tendency tendency;
 
     @Builder

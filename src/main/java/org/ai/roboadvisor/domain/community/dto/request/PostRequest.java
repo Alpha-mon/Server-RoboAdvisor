@@ -5,9 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.ai.roboadvisor.domain.community.entity.Post;
+import org.ai.roboadvisor.domain.tendency.entity.Tendency;
 
 import javax.validation.constraints.NotBlank;
-import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
@@ -16,7 +16,7 @@ public class PostRequest {
 
     @Schema(description = "사용자의 투자 성향", example = "SHEEP")
     @NotBlank
-    private String type;
+    private Tendency tendency;
 
     @Schema(description = "사용자의 닉네임", example = "testUser")
     @NotBlank
@@ -26,16 +26,11 @@ public class PostRequest {
     @NotBlank
     private String content;
 
-    @Schema(description = "시간", example = "2023-09-18 02:44:33")
-    @NotBlank
-    private String time;
-
-    public static Post fromPostRequest(PostRequest postRequest, LocalDateTime time) {
+    public static Post fromPostRequest(PostRequest postRequest) {
         return Post.builder()
-                .type(postRequest.getType())
+                .tendency(postRequest.getTendency())
                 .nickname(postRequest.getNickname())
                 .content(postRequest.getContent())
-                .time(time)
                 .build();
     }
 }

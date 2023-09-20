@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+import static org.ai.roboadvisor.global.exception.ErrorIntValue.*;
+
 @Slf4j
 @RequiredArgsConstructor
 @Service
@@ -21,19 +23,12 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    private final int SUCCESS = 0;
-    private final int EMAIL_ALREADY_EXIST_IN_DB = -1;
-    private final int NICKNAME_ALREADY_EXIST_IN_DB = -2;
-    private final int USER_NOT_EXISTED = -3;
-    private final int INTERNAL_SERVER_ERROR = -100;
-
-
     public int checkUserNickname(String nickname) {
         boolean checkNicknameInDb = checkNicknameIsDuplicated(nickname);
         if (checkNicknameInDb) {
-            return NICKNAME_ALREADY_EXIST_IN_DB;
+            return NICKNAME_ALREADY_EXIST_IN_DB.getValue();
         }
-        return SUCCESS;
+        return SUCCESS.getValue();
     }
 
     public int signUp(SignUpRequest signUpRequest) {
@@ -43,10 +38,10 @@ public class UserService {
         boolean checkNicknameInDb = checkNicknameIsDuplicated(nickname);
 
         if (checkEmailInDb) {
-            return EMAIL_ALREADY_EXIST_IN_DB;
+            return EMAIL_ALREADY_EXIST_IN_DB.getValue();
         }
         if (checkNicknameInDb) {
-            return NICKNAME_ALREADY_EXIST_IN_DB;
+            return NICKNAME_ALREADY_EXIST_IN_DB.getValue();
         }
 
         User user = SignUpRequest.toUserEntity(signUpRequest);
@@ -54,9 +49,9 @@ public class UserService {
             userRepository.save(user);
         } catch (RuntimeException e) {
             log.error(">> Exception in save user entity: ", e);
-            return INTERNAL_SERVER_ERROR;
+            return INTERNAL_SERVER_ERROR.getValue();
         }
-        return SUCCESS;
+        return SUCCESS.getValue();
     }
 
     public SignInResponse signIn(SignInRequest signInRequest) {

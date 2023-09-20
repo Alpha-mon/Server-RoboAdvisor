@@ -1,4 +1,4 @@
-package org.ai.roboadvisor.domain.user.entity;
+package org.ai.roboadvisor.domain.tendency.entity;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
@@ -28,3 +28,4 @@ public enum Tendency {
     }
 
 }
+

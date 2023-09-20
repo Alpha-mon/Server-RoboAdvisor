@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static org.ai.roboadvisor.global.exception.ErrorIntValue.*;
+
 @Slf4j
 @RequiredArgsConstructor
 @Service
@@ -39,10 +41,6 @@ public class ChatService {
     private final String ROLE_ASSISTANT = "assistant";
     private final int KST_TO_UTC = 9;
     private final int UTC_TO_KST = -9;
-
-    private final int SUCCESS = 0;
-    private final int TIME_INPUT_INVALID = -1;
-    private final int INTERNAL_SERVER_ERROR = -100;
 
     @Value("${openai.model}")
     private String OPEN_AI_MODEL;
@@ -80,16 +78,16 @@ public class ChatService {
         // MessageRequest time format 검증
         Optional<LocalDateTime> dateTimeOptional = parseDateTime(messageRequest.getTime());
         if (dateTimeOptional.isEmpty()) {
-            return TIME_INPUT_INVALID; // or handle the error differently
+            return TIME_INPUT_INVALID.getValue(); // or handle the error differently
         }
 
         Chat userChat = MessageRequest.toChatEntity(messageRequest, dateTimeOptional.get());
         try {
             userChat.setTimeZone(userChat.getTime(), KST_TO_UTC);   // KST -> UTC
             chatRepository.save(userChat);
-            return SUCCESS;
+            return SUCCESS.getValue();
         } catch (RuntimeException e) {
-            return INTERNAL_SERVER_ERROR;
+            return INTERNAL_SERVER_ERROR.getValue();
         }
     }
 

@@ -6,15 +6,13 @@ import org.ai.roboadvisor.domain.community.dto.request.PostRequest;
 import org.ai.roboadvisor.domain.community.dto.response.PostResponse;
 import org.ai.roboadvisor.domain.community.entity.Post;
 import org.ai.roboadvisor.domain.community.repository.PostRepository;
+import org.ai.roboadvisor.domain.tendency.entity.Tendency;
 import org.ai.roboadvisor.global.exception.CustomException;
 import org.ai.roboadvisor.global.exception.ErrorCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.util.Optional;
+import static org.ai.roboadvisor.global.exception.ErrorIntValue.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -23,32 +21,33 @@ public class PostService {
 
     private final PostRepository postRepository;
 
-    private final int SUCCESS = 0;
-    private final int TIME_INPUT_INVALID = -1;
-    private final int INTERNAL_SERVER_ERROR = -100;
-
     @Transactional
     public PostResponse save(PostRequest postRequest) {
-        LocalDateTime parsedTime = validateAndParseTime(postRequest.getTime());
-        Post newPost = PostRequest.fromPostRequest(postRequest, parsedTime);
+        checkTendencyIsValid(postRequest.getTendency());
+
+        Long initViewCount = 0L;
+        Post newPost = PostRequest.fromPostRequest(postRequest);
+        newPost.setViewCount(initViewCount);    // set default value = 0
 
         // save
         savePost(newPost);
 
-        return PostResponse.of(newPost.getId(), newPost.getType(), newPost.getNickname(),
-                newPost.getContent(), newPost.getTime());
+        return PostResponse.of(newPost.getId(), newPost.getTendency(), newPost.getNickname(),
+                newPost.getContent(), newPost.getCreatedDateTime(), newPost.getViewCount());
     }
 
     @Transactional
     public PostResponse update(Long postId, PostRequest postRequest) {
         Post existingPost = findExistingPostById(postId);
-        LocalDateTime parsedTime = validateAndParseTime(postRequest.getTime());
+
+        // check tendency type
+        checkTendencyIsValid(postRequest.getTendency());
 
         // validate if user has authority
         validateUserHasAuthority(postRequest, existingPost);
 
         // update
-        updatePostEntity(existingPost, postRequest, parsedTime);
+        updatePostEntity(existingPost, postRequest);
 
         return PostResponse.fromPostEntity(existingPost);
     }
@@ -62,26 +61,16 @@ public class PostService {
 
         try {
             postRepository.delete(existingPost);
-            return SUCCESS;
+            return SUCCESS.getValue();
         } catch (RuntimeException e) {
             log.error("e : ", e);
-            return INTERNAL_SERVER_ERROR;
+            return INTERNAL_SERVER_ERROR.getValue();
         }
     }
 
-    private LocalDateTime validateAndParseTime(String time) {
-        Optional<LocalDateTime> dateTimeOptional = parseStringToLocalDateTime(time);
-        return dateTimeOptional.orElseThrow(() -> new CustomException(ErrorCode.TIME_INPUT_INVALID));
-    }
-
-    private Optional<LocalDateTime> parseStringToLocalDateTime(String timeString) {
-        String pattern = "yyyy-MM-dd HH:mm:ss";
-        try {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
-            return Optional.of(LocalDateTime.parse(timeString, formatter));
-        } catch (DateTimeParseException e) {
-            log.error(">> Failed to parse date-time string.", e);
-            return Optional.empty();
+    private void checkTendencyIsValid(Tendency tendency) {
+        if (tendency == Tendency.TYPE_NOT_EXISTS) {
+            throw new CustomException(ErrorCode.TENDENCY_INPUT_INVALID);
         }
     }
 
@@ -105,9 +94,8 @@ public class PostService {
         }
     }
 
-    private void updatePostEntity(Post existingPost, PostRequest postRequest, LocalDateTime parsedTime) {
-        existingPost.setType(postRequest.getType());
+    private void updatePostEntity(Post existingPost, PostRequest postRequest) {
+        existingPost.setTendency(postRequest.getTendency());
         existingPost.setContent(postRequest.getContent());
-        existingPost.setTime(parsedTime);
     }
 }
