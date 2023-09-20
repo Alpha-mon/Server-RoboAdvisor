@@ -20,6 +20,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import static org.ai.roboadvisor.global.exception.ErrorIntValue.*;
+
 @Slf4j
 @RequiredArgsConstructor
 @Tag(name = "community] post", description = "게시글 작성, 수정, 삭제 API")
@@ -28,48 +30,47 @@ import org.springframework.web.bind.annotation.*;
 public class PostController {
     private final PostService postService;
 
-    private final int SUCCESS = 0;
-    private final int TIME_INPUT_INVALID = -1;
-    private final int INTERNAL_SERVER_ERROR = -100;
-
     @Operation(summary = "게시글 작성", description = "게시글 작성 API")
     @ApiResponse(responseCode = "201", description = """
-            정상 응답
+            정상 응답. data로 게시글 정보를 리턴한다.
                         
-            data로 게시글 정보를 리턴하며, id는 게시글의 고유 번호이다.
+            id: 게시글 고유 번호(식별 번호), tendency: 투자 성향, nickname: 게시글 작성자 닉네임,
+                        
+            content: 게시글 작성 내용, time: 게시글 작성 시간, viewcount: 조회수
             """,
             content = @Content(schema = @Schema(implementation = SuccessApiResponse.class),
                     examples = @ExampleObject(name = "example",
                             description = "정상 응답 예시",
                             value = """
                                        {
-                                             "code": 201,
-                                             "message": "게시글이 정상적으로 등록되었습니다",
-                                             "data": {
-                                                 "id": 3,
-                                                 "type": "SHEEP",
-                                                 "nickname": "testUser",
-                                                 "content": "안녕하세요",
-                                                 "time": "2023-09-17 23:44:33"
-                                             }
-                                         }
+                                           "code": 201,
+                                           "message": "게시글이 정상적으로 등록되었습니다",
+                                           "data": {
+                                               "id": 1,
+                                               "tendency": "SHEEP",
+                                               "nickname": "testUser",
+                                               "content": "안녕하세요",
+                                               "time": "2023-09-21 01:06:19",
+                                               "viewCount": 0
+                                           }
+                                       }
                                     """
                     )))
-    @ApiResponse(responseCode = "400", description = "시간 형식을 잘못 입력한 경우",
+    @ApiResponse(responseCode = "400", description = "투자 성향이 잘못 입력된 경우",
             content = @Content(schema = @Schema(implementation = SuccessApiResponse.class),
                     examples = @ExampleObject(name = "example",
-                            description = "시간 형식을 잘못 입력한 경우 예시",
+                            description = "투자 성향이 잘못 입력된 경우 예시",
                             value = """
                                        {
                                            "code": 400,
-                                           "message": "time 형식을 yyyy-MM-dd HH:mm:ss으로 작성해 주세요",
+                                           "message": "잘못된 투자 성향 형식이 입력되었습니다",
                                            "data": null
                                        }
                                     """
                     )))
     @ApiResponse_Internal_Server_Error
     @PostMapping()
-    public ResponseEntity<SuccessApiResponse<PostResponse>> savePost(@RequestBody PostRequest postRequest) {
+    public ResponseEntity<SuccessApiResponse<PostResponse>> save(@RequestBody PostRequest postRequest) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(SuccessApiResponse.success(SuccessCode.POST_CREATED_SUCCESS,
                         postService.save(postRequest)));
@@ -79,33 +80,34 @@ public class PostController {
     @ApiResponse(responseCode = "200", description = """
             정상 응답
                         
-            data로 게시글 정보를 리턴하며, id는 게시글의 고유 번호이다.
+            게시글이 정상적으로 수정된 경우: 응답 객체는 '게시글 작성' 과 동일하다.
             """,
             content = @Content(schema = @Schema(implementation = SuccessApiResponse.class),
                     examples = @ExampleObject(name = "example",
                             description = "정상 응답 예시",
                             value = """
-                                       {
-                                          "code": 200,
-                                          "message": "게시글 수정이 정상적으로 처리되었습니다",
-                                          "data": {
-                                              "id": 3,
-                                              "type": "LION",
-                                              "nickname": "testUser",
-                                              "content": "안녕하세요3333",
-                                              "time": "2023-09-18 00:11:44"
-                                          }
-                                        }
+                                      {
+                                           "code": 200,
+                                           "message": "게시글 수정이 정상적으로 처리되었습니다",
+                                           "data": {
+                                               "id": 1,
+                                               "tendency": "LION",
+                                               "nickname": "testUser",
+                                               "content": "안녕하세요3333",
+                                               "time": "2023-09-21 01:06:20",
+                                               "viewCount": 0
+                                           }
+                                       }
                                     """
                     )))
-    @ApiResponse(responseCode = "400", description = "시간 형식을 잘못 입력한 경우",
+    @ApiResponse(responseCode = "400", description = "투자 성향이 잘못 입력된 경우",
             content = @Content(schema = @Schema(implementation = SuccessApiResponse.class),
                     examples = @ExampleObject(name = "example",
-                            description = "시간 형식을 잘못 입력한 경우 예시",
+                            description = "투자 성향이 잘못 입력된 경우 예시",
                             value = """
                                        {
                                            "code": 400,
-                                           "message": "time 형식을 yyyy-MM-dd HH:mm:ss으로 작성해 주세요",
+                                           "message": "잘못된 투자 성향 형식이 입력되었습니다",
                                            "data": null
                                        }
                                     """
@@ -113,13 +115,13 @@ public class PostController {
     @ApiResponse(responseCode = "401", description = "게시글 수정 권한이 없는 경우",
             content = @Content(schema = @Schema(implementation = SuccessApiResponse.class),
                     examples = @ExampleObject(name = "example",
-                            description = "시간 형식을 잘못 입력한 경우 예시",
+                            description = "게시글 수정 권한이 없는 경우 예시",
                             value = """
                                        {
-                                            "code": 401,
-                                            "message": "게시글 수정 혹은 삭제 권한이 존재하지 않습니다",
-                                            "data": null
-                                        }
+                                           "code": 401,
+                                           "message": "게시글 수정 혹은 삭제 권한이 존재하지 않습니다",
+                                           "data": null
+                                       }
                                     """
                     )))
     @ApiResponse_Internal_Server_Error
@@ -147,22 +149,10 @@ public class PostController {
                                        }
                                     """
                     )))
-    @ApiResponse(responseCode = "400", description = "시간 형식을 잘못 입력한 경우",
-            content = @Content(schema = @Schema(implementation = SuccessApiResponse.class),
-                    examples = @ExampleObject(name = "example",
-                            description = "시간 형식을 잘못 입력한 경우 예시",
-                            value = """
-                                       {
-                                           "code": 400,
-                                           "message": "time 형식을 yyyy-MM-dd HH:mm:ss으로 작성해 주세요",
-                                           "data": null
-                                       }
-                                    """
-                    )))
     @ApiResponse(responseCode = "401", description = "게시글 삭제 권한이 없는 경우",
             content = @Content(schema = @Schema(implementation = SuccessApiResponse.class),
                     examples = @ExampleObject(name = "example",
-                            description = "시간 형식을 잘못 입력한 경우 예시",
+                            description = "게시글 삭제 권한이 없는 예시",
                             value = """
                                        {
                                             "code": 401,
@@ -175,7 +165,7 @@ public class PostController {
     @DeleteMapping("/{postId}")
     public ResponseEntity<SuccessApiResponse<?>> delete(@PathVariable("postId") Long postId, @RequestBody PostRequest postRequest) {
         int result = postService.delete(postId, postRequest);
-        if (result == SUCCESS) {
+        if (result == SUCCESS.getValue()) {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(SuccessApiResponse.success(SuccessCode.POST_DELETE_SUCCESS));
         } else {

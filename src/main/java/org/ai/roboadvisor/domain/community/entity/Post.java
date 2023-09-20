@@ -4,23 +4,24 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.ai.roboadvisor.domain.tendency.entity.Tendency;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)  // 인자 없는 기본 생성자 필요
 @Entity
 @Table(name = "posts")
-public class Post {
+public class Post extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "post_id")
     private Long id;
 
-    @Column(name = "post_type", nullable = false, length = 10)
-    private String type;
+    @Column(name = "post_tendency", nullable = false, length = 10)
+    @Enumerated(EnumType.STRING)
+    private Tendency tendency;
 
     @Column(name = "post_nickname", nullable = false, length = 50)
     private String nickname;
@@ -28,19 +29,19 @@ public class Post {
     @Column(name = "post_content", nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "post_time", nullable = false)
-    private LocalDateTime time;
+    @Column(name = "post_view_count", columnDefinition = "INTEGER DEFAULT 0")
+    private Long viewCount;
 
     @Builder
-    private Post(String type, String nickname, String content, LocalDateTime time) {
-        this.type = type;
+    private Post(Tendency tendency, String nickname, String content, Long viewCount) {
+        this.tendency = tendency;
         this.nickname = nickname;
         this.content = content;
-        this.time = time;
+        this.viewCount = viewCount;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setTendency(Tendency tendency) {
+        this.tendency = tendency;
     }
 
     public void setNickname(String nickname) {
@@ -51,7 +52,8 @@ public class Post {
         this.content = content;
     }
 
-    public void setTime(LocalDateTime time) {
-        this.time = time;
+    public void setViewCount(Long viewCount) {
+        this.viewCount = viewCount;
     }
+
 }

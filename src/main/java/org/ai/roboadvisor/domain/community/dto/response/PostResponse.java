@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.ai.roboadvisor.domain.community.entity.Post;
+import org.ai.roboadvisor.domain.tendency.entity.Tendency;
 
 import java.time.LocalDateTime;
 
@@ -12,18 +13,22 @@ import java.time.LocalDateTime;
 public class PostResponse {
 
     private Long id;
-    private String type;
+    private Tendency tendency;
     private String nickname;
     private String content;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private LocalDateTime time;
 
-    public static PostResponse of(Long id, String type, String nickname, String content, LocalDateTime time) {
-        return new PostResponse(id, type, nickname, content, time);
+    private Long viewCount;
+
+    public static PostResponse of(Long id, Tendency tendency, String nickname, String content, LocalDateTime time,
+                                  Long viewCount) {
+        return new PostResponse(id, tendency, nickname, content, time, viewCount);
     }
 
     public static PostResponse fromPostEntity(Post post) {
-        return new PostResponse(post.getId(), post.getType(), post.getNickname(), post.getContent(), post.getTime());
+        return new PostResponse(post.getId(), post.getTendency(),
+                post.getNickname(), post.getContent(), post.getCreatedDateTime(), post.getViewCount());
     }
 }
