@@ -4,8 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ai.roboadvisor.domain.user.dto.request.SignInRequest;
 import org.ai.roboadvisor.domain.user.dto.request.SignUpRequest;
+import org.ai.roboadvisor.domain.user.dto.response.SignInResponse;
+import org.ai.roboadvisor.domain.user.entity.Tendency;
 import org.ai.roboadvisor.domain.user.entity.User;
 import org.ai.roboadvisor.domain.user.repository.UserRepository;
+import org.ai.roboadvisor.global.exception.CustomException;
+import org.ai.roboadvisor.global.exception.ErrorCode;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -55,16 +59,18 @@ public class UserService {
         return SUCCESS;
     }
 
-    public int signIn(SignInRequest signInRequest) {
+    public SignInResponse signIn(SignInRequest signInRequest) {
         String email = signInRequest.getEmail();
         String password = signInRequest.getPassword();
 
         Optional<User> signInUser = userRepository.findUserByEmailAndPassword(email, password);
         if (signInUser.isEmpty()) {
             // 가입된 유저가 없다.
-            return USER_NOT_EXISTED;
+            throw new CustomException(ErrorCode.USER_NOT_EXISTED);
         } else {
-            return SUCCESS;
+            String userNickname = signInUser.get().getNickname();
+            Tendency userTendency = signInUser.get().getTendency();
+            return SignInResponse.of(userNickname, userTendency);
         }
     }
 
