@@ -3,7 +3,7 @@ package org.ai.roboadvisor.domain.tendency.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ai.roboadvisor.domain.tendency.dto.request.TendencyUpdateRequest;
-import org.ai.roboadvisor.domain.user.entity.Tendency;
+import org.ai.roboadvisor.domain.tendency.entity.Tendency;
 import org.ai.roboadvisor.domain.user.entity.User;
 import org.ai.roboadvisor.domain.user.repository.UserRepository;
 import org.springframework.stereotype.Service;

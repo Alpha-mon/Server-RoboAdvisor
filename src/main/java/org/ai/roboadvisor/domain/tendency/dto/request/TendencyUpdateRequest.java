@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.ai.roboadvisor.domain.user.entity.Tendency;
+import org.ai.roboadvisor.domain.tendency.entity.Tendency;
 
 import javax.validation.constraints.NotBlank;
 

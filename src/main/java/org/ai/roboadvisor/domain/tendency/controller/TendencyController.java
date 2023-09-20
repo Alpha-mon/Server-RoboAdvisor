@@ -9,8 +9,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ai.roboadvisor.domain.tendency.dto.request.TendencyUpdateRequest;
+import org.ai.roboadvisor.domain.tendency.entity.Tendency;
 import org.ai.roboadvisor.domain.tendency.service.TendencyService;
-import org.ai.roboadvisor.domain.user.entity.Tendency;
 import org.ai.roboadvisor.global.common.dto.SuccessApiResponse;
 import org.ai.roboadvisor.global.exception.CustomException;
 import org.ai.roboadvisor.global.exception.ErrorCode;
@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RequiredArgsConstructor
-@Tag(name = "investment-tendency", description = "투자 성향과 관련된 API")
+@Tag(name = "investment-tendency", description = "투자 성향 API")
 @RestController
 @RequestMapping("/api/tendency")
 public class TendencyController {
@@ -39,6 +39,8 @@ public class TendencyController {
     @Operation(summary = "투자 성향 등록", description = "사용자의 투자 성향을 등록한다")
     @ApiResponse(responseCode = "201", description = """
             사용자가 입력한 투자 성향을 등록한다.
+                        
+            투자 성향 종류: LION(공격투자형), SNAKE(적극투자형), MONKEY(위험중립형), SHEEP(안정추구형)
                         
             data 값으로 등록된 투자 성향의 결과를 반환한다""",
             content = @Content(schema = @Schema(implementation = SuccessApiResponse.class),

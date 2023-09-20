@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.ai.roboadvisor.domain.tendency.entity.Tendency;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
