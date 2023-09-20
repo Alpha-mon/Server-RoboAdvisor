@@ -22,6 +22,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
+import static org.ai.roboadvisor.global.exception.ErrorIntValue.*;
+
 @Slf4j
 @RequiredArgsConstructor
 @Tag(name = "user", description = "닉네임 중복 검사, 회원가입 및 로그인 API")
@@ -30,11 +32,6 @@ import javax.validation.Valid;
 public class UserController {
 
     private final UserService userService;
-
-    private final int SUCCESS = 0;
-    private final int EMAIL_ALREADY_EXIST_IN_DB = -1;
-    private final int NICKNAME_ALREADY_EXIST_IN_DB = -2;
-    private final int USER_NOT_EXISTED = -3;
 
     @Operation(summary = "닉네임 중복 체크", description = "닉네임 중복 여부를 확인하는 로직")
     @ApiResponse(responseCode = "200", description = "닉네임이 사용 가능한 경우",
@@ -64,7 +61,7 @@ public class UserController {
     @GetMapping("/check/nickname-duplicate")
     public ResponseEntity<SuccessApiResponse<?>> checkUserNickname(@RequestParam("nickname") String nickname) {
         int result = userService.checkUserNickname(nickname);
-        if (result == SUCCESS) {
+        if (result == SUCCESS.getValue()) {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(SuccessApiResponse.success(SuccessCode.NICKNAME_AVAILABLE));
         } else {
@@ -114,12 +111,12 @@ public class UserController {
     public ResponseEntity<SuccessApiResponse<?>> signUp(@Valid @RequestBody SignUpRequest signUpRequest) {
         int result = userService.signUp(signUpRequest);
 
-        if (result == SUCCESS) {
+        if (result == SUCCESS.getValue()) {
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(SuccessApiResponse.success(SuccessCode.SIGNUP_SUCCESS));
-        } else if (result == EMAIL_ALREADY_EXIST_IN_DB) {
+        } else if (result == EMAIL_ALREADY_EXIST_IN_DB.getValue()) {
             throw new CustomException(ErrorCode.EMAIL_ALREADY_EXIST_IN_DB);
-        } else if (result == NICKNAME_ALREADY_EXIST_IN_DB) {
+        } else if (result == NICKNAME_ALREADY_EXIST_IN_DB.getValue()) {
             throw new CustomException(ErrorCode.NICKNAME_ALREADY_EXIST_IN_DB);
         } else {
             throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
@@ -154,7 +151,7 @@ public class UserController {
     @PostMapping("/signin")
     public ResponseEntity<SuccessApiResponse<?>> signIn(@Valid @RequestBody SignInRequest signInRequest) {
         int result = userService.signIn(signInRequest);
-        if (result == SUCCESS) {
+        if (result == SUCCESS.getValue()) {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(SuccessApiResponse.success(SuccessCode.LOGIN_SUCCESS));
         } else {

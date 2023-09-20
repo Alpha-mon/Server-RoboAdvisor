@@ -44,8 +44,8 @@ public class User {
     @Column(nullable = true, length = 30)
     private String career;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = true, length = 20)
+    @Enumerated(EnumType.STRING)
     private Tendency tendency;
 
     @Builder

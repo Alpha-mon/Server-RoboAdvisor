@@ -2,10 +2,12 @@ package org.ai.roboadvisor.domain.tendency.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.ai.roboadvisor.domain.tendency.dto.request.TendencyUpdateRequest;
+import org.ai.roboadvisor.domain.tendency.dto.TendencyUpdateDto;
 import org.ai.roboadvisor.domain.tendency.entity.Tendency;
 import org.ai.roboadvisor.domain.user.entity.User;
 import org.ai.roboadvisor.domain.user.repository.UserRepository;
+import org.ai.roboadvisor.global.exception.CustomException;
+import org.ai.roboadvisor.global.exception.ErrorCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,25 +17,23 @@ import org.springframework.transaction.annotation.Transactional;
 public class TendencyService {
 
     private final UserRepository userRepository;
-    private final int SUCCESS = 0;
-    private final int INVALID_TENDENCY_ERROR = -1;
-    private final int INTERNAL_SERVER_ERROR = -100;
 
     @Transactional
-    public int updateTendency(TendencyUpdateRequest tendencyUpdateRequest) {
-        String userNickname = tendencyUpdateRequest.getNickname();
+    public TendencyUpdateDto updateTendency(TendencyUpdateDto tendencyUpdateDto) {
+        String userNickname = tendencyUpdateDto.getNickname();
 
-        Tendency tendency = tendencyUpdateRequest.getTendency();
-        if (checkTendencyIsValid(tendency)) {
-            return INVALID_TENDENCY_ERROR;
+        Tendency updateTendency = tendencyUpdateDto.getTendency();
+        if (checkTendencyIsValid(updateTendency)) {
+            throw new CustomException(ErrorCode.TENDENCY_INPUT_INVALID);
         }
 
         User user = userRepository.findUserByNickname(userNickname).orElse(null);
         if (user == null) {
-            return INTERNAL_SERVER_ERROR;
+            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
-        user.setTendency(tendency);
-        return SUCCESS;
+        user.setTendency(updateTendency);
+
+        return TendencyUpdateDto.of(userNickname, updateTendency);
     }
 
     private boolean checkTendencyIsValid(Tendency tendency) {

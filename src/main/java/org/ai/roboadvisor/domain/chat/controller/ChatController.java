@@ -26,6 +26,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Collections;
 import java.util.List;
 
+import static org.ai.roboadvisor.global.exception.ErrorIntValue.*;
+
 @Slf4j
 @RequiredArgsConstructor
 @Tag(name = "chat-bot", description = "ChatGPT를 이용한 챗봇 API")
@@ -34,10 +36,6 @@ import java.util.List;
 public class ChatController {
 
     private final ChatService chatService;
-
-    private final int SUCCESS = 0;
-    private final int TIME_INPUT_INVALID = -1;
-    private final int INTERNAL_SERVER_ERROR = -100;
 
     @Operation(summary = "채팅 서비스로 입장하는 경우", description = """
             사용자가 채팅 서비스 입장 시, 기존의 대화 내용을 불러온다.
@@ -156,11 +154,11 @@ public class ChatController {
     public ResponseEntity<SuccessApiResponse<ChatResponse>> sendChatBotMessage(@RequestBody MessageRequest messageRequest) {
         int saveResult = chatService.saveChat(messageRequest);
 
-        if (saveResult == SUCCESS) {
+        if (saveResult == SUCCESS.getValue()) {
             ChatResponse result = chatService.getMessageFromApi(messageRequest.getNickname(), messageRequest.getContent());
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(SuccessApiResponse.success(SuccessCode.CHAT_CREATED_SUCCESS, result));
-        } else if (saveResult == TIME_INPUT_INVALID) {
+        } else if (saveResult == TIME_INPUT_INVALID.getValue()) {
             throw new CustomException(ErrorCode.TIME_INPUT_INVALID);
         } else {
             throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
