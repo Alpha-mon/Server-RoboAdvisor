@@ -36,9 +36,9 @@ public class ChatController {
                         
             기존에 대화 내용이 존재하지 않는다면(처음 입장하는 경우), 초기 메시지(Welcome Message)를 보내준다.
 
-            order : 초기 메시지의 경우 null이며, 대화 내용을 불러오는 경우에는 숫자가 클수록 최근에 한 대화이다.
+            order : 대화 내용을 불러오는 경우에 숫자가 클수록 최근에 한 대화이다.
 
-            role : user의 경우 사용자가 입력한 대화, role : assistant의 경우 ChatGPT가 응답하는 대화이다.
+            role : 'user' - 사용자가 입력한 대화, 'assistant' - ChatGPT가 응답하는 대화이다.
             """)
     @getAllChats_OK
     @getAllChats_CREATED

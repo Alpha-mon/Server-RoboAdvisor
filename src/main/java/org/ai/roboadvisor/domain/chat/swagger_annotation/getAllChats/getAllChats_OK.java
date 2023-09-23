@@ -15,6 +15,12 @@ import java.lang.annotation.*;
         사용자가 채팅방에 처음 입장한 경우, 기존의 대화 내용을 보낸다.
                         
         chatOrderResponse Array 객체 안에, order, role, content, time 정보가 각각 담긴다.
+                
+        order 값이 높을 수록, 나중에 작성된 메시지이다. 따라서 order 값을 기준으로 정렬하면 되며,
+                
+        혹은 time 값을 DateTime 타입으로 바꿔서 정렬도 가능하다.
+                
+        '현재는 Pagination을 따로 사용하지 않고, 전체 데이터를 한 번에 모두 보내도록 구현되어 있음'
 
         """,
         content = @Content(schema = @Schema(implementation = SuccessApiResponse.class),
