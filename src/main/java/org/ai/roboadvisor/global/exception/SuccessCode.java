@@ -29,7 +29,7 @@ public enum SuccessCode {
      * 201 CREATED
      */
     // chat
-    WELCOME_MESSAGE_CREATED_SUCCESS(HttpStatus.CREATED.value(), "초기 대화 내용이 정상적으로 응답되었습니다"),
+    WELCOME_MESSAGE_CREATED_SUCCESS(HttpStatus.CREATED.value(), "채팅방 입장에 성공하셨습니다"),
     CHAT_CREATED_SUCCESS(HttpStatus.CREATED.value(), "사용자의 채팅 메시지가 정상적으로 처리되었습니다"),
     CHAT_DELETED_SUCCESS(HttpStatus.CREATED.value(), "기존 대화 내용이 정상적으로 삭제되었습니다"),
 

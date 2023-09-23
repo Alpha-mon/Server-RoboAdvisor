@@ -6,8 +6,9 @@ import org.ai.roboadvisor.domain.chat.dto.Message;
 import org.ai.roboadvisor.domain.chat.dto.request.ChatGptRequest;
 import org.ai.roboadvisor.domain.chat.dto.request.MessageRequest;
 import org.ai.roboadvisor.domain.chat.dto.response.ChatGptResponse;
-import org.ai.roboadvisor.domain.chat.dto.response.ChatListResponse;
+import org.ai.roboadvisor.domain.chat.dto.response.ChatOrderResponse;
 import org.ai.roboadvisor.domain.chat.dto.response.ChatResponse;
+import org.ai.roboadvisor.domain.chat.dto.response.ChatResult;
 import org.ai.roboadvisor.domain.chat.entity.Chat;
 import org.ai.roboadvisor.domain.chat.repository.ChatRepository;
 import org.ai.roboadvisor.global.exception.CustomException;
@@ -27,8 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.ai.roboadvisor.global.exception.ErrorIntValue.*;
-
 @Slf4j
 @RequiredArgsConstructor
 @Service
@@ -46,13 +45,12 @@ public class ChatService {
     private String OPEN_AI_MODEL;
 
     @Transactional
-    public List<ChatListResponse> getAllChatOfUser(String nickname) {
-        List<ChatListResponse> result = new ArrayList<>();
-
-        if (!checkIfChatIsExistsInDb(nickname)) {
-            ChatListResponse chatResponse = createAndSaveWelcomeMessage(nickname);
-            result.add(chatResponse);
+    public ChatResult getAllChats(String nickname) {
+        if (!checkIfChatExistsInDb(nickname)) {
+            return new ChatResult(createAndSaveWelcomeMessage(nickname));
         } else {
+            List<ChatOrderResponse> result = new ArrayList<>();
+
             // 1. Sorting Data order by time and _id
             Sort sort = Sort.by(
                     Sort.Order.desc("time"),
@@ -66,29 +64,20 @@ public class ChatService {
             for (int i = 0; i < chatList.size(); i++) {
                 Chat thisChat = chatList.get(i);
                 thisChat.setTimeZone(thisChat.getTime(), UTC_TO_KST); // UTC -> KST
-                ChatListResponse dto = ChatListResponse.fromChatEntity(chatList.get(i), chatList.size() - i);
+                ChatOrderResponse dto = ChatOrderResponse.fromChatEntity(chatList.get(i), chatList.size() - i);
                 result.add(dto);
             }
+            return new ChatResult(result);
         }
-        return result;
     }
 
-    public int saveChat(MessageRequest messageRequest) {
-
+    public void save(MessageRequest messageRequest) {
         // MessageRequest time format 검증
-        Optional<LocalDateTime> dateTimeOptional = parseDateTime(messageRequest.getTime());
-        if (dateTimeOptional.isEmpty()) {
-            return TIME_INPUT_INVALID.getValue(); // or handle the error differently
-        }
+        LocalDateTime dateTime = parseDateTime(messageRequest.getTime())
+                .orElseThrow(() -> new CustomException(ErrorCode.TIME_INPUT_INVALID));
 
-        Chat userChat = MessageRequest.toChatEntity(messageRequest, dateTimeOptional.get());
-        try {
-            userChat.setTimeZone(userChat.getTime(), KST_TO_UTC);   // KST -> UTC
-            chatRepository.save(userChat);
-            return SUCCESS.getValue();
-        } catch (RuntimeException e) {
-            return INTERNAL_SERVER_ERROR.getValue();
-        }
+        Chat userChat = MessageRequest.toChatEntity(messageRequest, dateTime);
+        saveChat(userChat);
     }
 
     public ChatResponse getMessageFromApi(String nickname, String message) {
@@ -134,17 +123,17 @@ public class ChatService {
         }
     }
 
-    public boolean clear(String email) {
+    public ChatResult clear(String nickname) {
         // Clear All data
         try {
-            chatRepository.deleteAllByEmail(email);
-            return true;
+            chatRepository.deleteAllByNickname(nickname);
         } catch (RuntimeException e) {
-            return false;
+            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
+        return new ChatResult(createAndSaveWelcomeMessage(nickname));
     }
 
-    public ChatListResponse createAndSaveWelcomeMessage(String nickname) {
+    public ChatResponse createAndSaveWelcomeMessage(String nickname) {
         String WELCOME_MESSAGE = "안녕하세요, 저는 AI로보어드바이저의 ChatGPT 서비스에요! 궁금한 점을 입력해주세요";
 
         // 1. Create Chat Entity and Save
@@ -156,6 +145,13 @@ public class ChatService {
                 .time(now)
                 .build();
 
+        saveChat(chat);
+
+        // 2. Entity -> DTO and Return Welcome Message
+        return ChatResponse.fromChatEntity(chat);
+    }
+
+    private void saveChat(Chat chat) {
         try {
             chat.setTimeZone(chat.getTime(), KST_TO_UTC);   // KST -> UTC
             chatRepository.save(chat);
@@ -163,9 +159,6 @@ public class ChatService {
         } catch (RuntimeException e) {
             throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
-
-        // 2. Entity -> DTO and Return Welcome Message
-        return ChatListResponse.fromChatEntity(chat, null);
     }
 
     private Optional<LocalDateTime> parseDateTime(String timeString) {
@@ -178,7 +171,7 @@ public class ChatService {
         }
     }
 
-    private boolean checkIfChatIsExistsInDb(String email) {
+    private boolean checkIfChatExistsInDb(String email) {
         return chatRepository.existsChatByNickname(email);
     }
 }

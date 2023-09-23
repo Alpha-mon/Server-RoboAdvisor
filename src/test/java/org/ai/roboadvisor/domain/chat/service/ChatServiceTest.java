@@ -1,26 +1,27 @@
 package org.ai.roboadvisor.domain.chat.service;
 
 import org.ai.roboadvisor.domain.chat.dto.request.MessageRequest;
+import org.ai.roboadvisor.domain.chat.dto.response.ChatOrderResponse;
 import org.ai.roboadvisor.domain.chat.dto.response.ChatResponse;
+import org.ai.roboadvisor.domain.chat.dto.response.ChatResult;
 import org.ai.roboadvisor.domain.chat.entity.Chat;
 import org.ai.roboadvisor.domain.chat.repository.ChatRepository;
+import org.ai.roboadvisor.global.exception.CustomException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
 //@Transactional // MongoDB does not support @Transactional
@@ -34,9 +35,7 @@ class ChatServiceTest {
     @Autowired
     private ChatRepository chatRepository;
 
-    @Autowired
-    private MongoTemplate mongoTemplate;
-
+    private final String TEST_USER_NICKNAME = "test_nickname";
     private final String ROLE_USER = "user";
     private final String ROLE_ASSISTANT = "assistant";
     private final String WELCOME_MESSAGE = "안녕하세요, 저는 AI로보어드바이저의 ChatGPT 서비스에요! 궁금한 점을 입력해주세요";
@@ -52,64 +51,105 @@ class ChatServiceTest {
     }
 
     /**
-     * getChatList(String email)
+     * getAllChats
      */
     @Test
-    @DisplayName("db에 대화내용이 존재하지 않는 경우 Welcome Message를 리스트에 담아서 Controller로 전달한다")
-    void getChatList_when_data_is_null() {
+    @DisplayName("case 1: db에 대화내용이 존재하지 않는 경우, Welcome Message를 Controller로 전달한다")
+    void getAllChats_when_data_is_null() {
         // given
-        String testEmail = "test@test.com";
+        String testNickname = TEST_USER_NICKNAME;
 
         // when
-        List<ChatResponse> list = chatService.getAllChatOfUser(testEmail);
+        ChatResult chatResult = chatService.getAllChats(testNickname);
 
         // then
-        assertThat(list.isEmpty()).isFalse();   // check data is exists
+        assertThat(chatResult.getChatOrderResponse()).isNull();
+        assertThat(chatResult.getChatResponse()).isNotNull();
 
-        ChatResponse result = list.get(0);
-        assertThat(result.getOrder()).isNull();
+        ChatResponse result = chatResult.getChatResponse();
         assertThat(result.getRole()).isEqualTo(ROLE_ASSISTANT);
         assertThat(result.getContent()).isEqualTo(WELCOME_MESSAGE);
+        assertThat(result.getTime()).isNotNull();
     }
 
     @Test
-    @DisplayName("db에 대화내용이 존재하는 경우 기존 대화 내용을 List로 담아 Controller로 전달한다")
+    @DisplayName("case 2: db에 대화내용이 존재하는 경우-대화 내용이 한 개 존재")
     void getChatList_when_data_already_exists_in_db() {
         // given
-        String testEmail = "test@test.com";
+        String testNickname = TEST_USER_NICKNAME;
 
         LocalDateTime now = LocalDateTime.now();
-        List<Chat> chatList = Arrays.asList(
+        List<Chat> chats = Collections.singletonList(
                 Chat.builder()
-                        .email(testEmail)
+                        .nickname(testNickname)
+                        .role(ROLE_ASSISTANT)
+                        .message(WELCOME_MESSAGE)
+                        .time(now)
+                        .build()
+
+        );
+        chatRepository.saveAll(chats);
+
+        // when
+        ChatResult chatResult = chatService.getAllChats(testNickname);
+
+        // then
+        assertThat(chatResult.getChatOrderResponse()).isNotNull();
+        assertThat(chatResult.getChatResponse()).isNull();
+
+        List<ChatOrderResponse> chatOrderResponses = chatResult.getChatOrderResponse();
+        assertThat(chatOrderResponses.size()).isEqualTo(1);
+
+        ChatOrderResponse oneOrderResponse = chatOrderResponses.get(0);
+
+        assertThat(oneOrderResponse.getOrder()).isEqualTo(1);
+        assertThat(oneOrderResponse.getRole()).isEqualTo(ROLE_ASSISTANT);
+        assertThat(oneOrderResponse.getContent()).isEqualTo(WELCOME_MESSAGE);
+    }
+
+    @Test
+    @DisplayName("case 2-1: db에 대화내용이 존재하는 경우-대화 내용이 여러 개 존재")
+    void getChatList_when_datas_already_exists_in_db() {
+        // given
+        String testNickname = TEST_USER_NICKNAME;
+
+        LocalDateTime now = LocalDateTime.now();
+        List<Chat> chats = Arrays.asList(
+                Chat.builder()
+                        .nickname(testNickname)
                         .role(ROLE_ASSISTANT)
                         .message(WELCOME_MESSAGE)
                         .time(now)
                         .build(),
                 Chat.builder()
-                        .email(testEmail)
+                        .nickname(testNickname)
                         .role(ROLE_USER)
                         .message("주식시장에서, 선물 거래의 의미는 무엇이니?")
                         .time(now.plusSeconds(3000))
                         .build(),
                 Chat.builder()
-                        .email(testEmail)
+                        .nickname(testNickname)
                         .role(ROLE_ASSISTANT)
                         .message("선물이란 .. 입니다.")
                         .time(now.plusSeconds(6000))
                         .build()
         );
-        chatRepository.saveAll(chatList);
+        chatRepository.saveAll(chats);
 
         // when
-        List<ChatResponse> resultList = chatService.getAllChatOfUser(testEmail);
+        ChatResult chatResult = chatService.getAllChats(testNickname);
 
         // then
-        assertThat(resultList.size()).isEqualTo(3);
+        assertThat(chatResult.getChatOrderResponse()).isNotNull();
+        assertThat(chatResult.getChatResponse()).isNull();
+
+        List<ChatOrderResponse> chatOrderResponses = chatResult.getChatOrderResponse();
+        assertThat(chatOrderResponses.size()).isEqualTo(3);
 
         // Order 1, 2, 3이 정상적으로 리턴되는지 확인
-        List<Integer> orderList = Arrays.asList(resultList.get(0).getOrder(), resultList.get(1).getOrder(),
-                resultList.get(2).getOrder());
+        List<Integer> orderList = Arrays.asList(chatOrderResponses.get(0).getOrder(),
+                chatOrderResponses.get(1).getOrder(),
+                chatOrderResponses.get(2).getOrder());
         boolean order1Exists = orderList.stream().anyMatch(
                 num -> num == 1);
         boolean order2Exists = orderList.stream().anyMatch(
@@ -125,99 +165,88 @@ class ChatServiceTest {
 
         // 시간 순으로 order 값이 잘 정렬되었는지 확인
         // order 값이 높을 수록, 최신 메시지이다.
-        ChatResponse response1 = resultList.get(0); // 이 메시지가 가장 최신 메시지, 즉 시간이 제일 늦다.
-        ChatResponse response2 = resultList.get(1);
-        ChatResponse response3 = resultList.get(2); // 이 메시지가 가장 이전에 작성된 메시지. 즉 시간이 제일 빠르다.
+        ChatOrderResponse response1 = chatOrderResponses.get(0); // 이 메시지가 가장 최신 메시지, 즉 시간이 제일 늦다.
+        ChatOrderResponse response2 = chatOrderResponses.get(1);
+        ChatOrderResponse response3 = chatOrderResponses.get(2); // 이 메시지가 가장 이전에 작성된 메시지. 즉 시간이 제일 빠르다.
 
-        // remove 'T'
-        String time1 = response1.getTime().replace("T", " ");
-        String time2 = response2.getTime().replace("T", " ");
-        String time3 = response3.getTime().replace("T", " ");
-
-        // String -> LocalDateTime to compare times
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        LocalDateTime dateTime1 = LocalDateTime.parse(time1, formatter);
-        LocalDateTime dateTime2 = LocalDateTime.parse(time2, formatter);
-        LocalDateTime dateTime3 = LocalDateTime.parse(time3, formatter);
-
-        assertThat(dateTime1.isAfter(dateTime2)).isTrue();
-        assertThat(dateTime1.isAfter(dateTime3)).isTrue();
-        assertThat(dateTime2.isAfter(dateTime3)).isTrue();
+        assertThat(response1.getTime().isAfter(response2.getTime())).isTrue();
+        assertThat(response2.getTime().isAfter(response3.getTime())).isTrue();
+        assertThat(response1.getTime().isAfter(response3.getTime())).isTrue();
     }
 
     /**
-     * getMessageFromApi(String userEmail, String message)
-     */
-    /*@Test
-    @DisplayName("")
-    void getMessageFromApi() {
-        // given
-        String testEmail = "test@test.com";
-        String testMsg = "오늘 삼성전자의 주가는 얼마니?";
-
-
-        // when
-        Message messageFromApi = chatService.getMessageFromApi(testEmail, testMsg);
-
-
-        // then
-        System.out.println("messageFromApi = " + messageFromApi.getRole());
-        System.out.println("messageFromApi.getContent() = " + messageFromApi.getContent());
-
-    }*/
-
-
-    /**
-     * saveChat()
+     * save
      */
     @Test
-    @DisplayName("사용자의 MessageRequest가 정상적으로 저장되는 경우 true 리턴")
-    void saveChat() {
+    @DisplayName("case 1: 사용자의 MessageRequest가 정상적으로 저장되는 경우")
+    void save() {
         // given
-        String testEmail = "test_1@test.com";
+        String testNickname = TEST_USER_NICKNAME;
         String testMsg = "test hello";
         String testTime = "2023-08-04 23:05:24";
         MessageRequest messageRequest = MessageRequest.builder()
-                .email(testEmail)
+                .nickname(testNickname)
                 .content(testMsg)
                 .time(testTime)
                 .build();
+
         // when
-        boolean result = chatService.saveChat(messageRequest);
+        chatService.save(messageRequest);
 
         // then
-        assertThat(result).isTrue();
+        List<Chat> chats = chatRepository.findAll();
+        assertThat(chats.size()).isEqualTo(1);
+    }
 
-        // double check if data exists
-        Query query = new Query();
-        query.addCriteria(Criteria.where("email").is(testEmail));
-        List<Chat> resultList = mongoTemplate.find(query, Chat.class);
-        Chat userChat = resultList.get(0);
+    @Test
+    @DisplayName("case 2: MessageRequest에서 time 형식이 잘못된 경우")
+    void save_fail_when_time_format_is_wrong() {
+        // given
+        String testNickname = TEST_USER_NICKNAME;
+        String testMsg = "test hello";
+        String testTime = "2023-08-04T23:05:24";
+        String testTime2 = "2023-08-04  23:05:24";
+        String testTime3 = "2023-08-0423:05:24";
+        MessageRequest messageRequest1 = MessageRequest.builder()
+                .nickname(testNickname)
+                .content(testMsg)
+                .time(testTime)
+                .build();
+        MessageRequest messageRequest2 = MessageRequest.builder()
+                .nickname(testNickname)
+                .content(testMsg)
+                .time(testTime2)
+                .build();
+        MessageRequest messageRequest3 = MessageRequest.builder()
+                .nickname(testNickname)
+                .content(testMsg)
+                .time(testTime3)
+                .build();
 
-        assertThat(userChat).isNotNull();
-        assertThat(userChat.getEmail()).isEqualTo(testEmail);
-        assertThat(userChat.getRole()).isEqualTo("user");
-        assertThat(userChat.getMessage()).isEqualTo(testMsg);
+        // then
+        assertThrows(CustomException.class, () -> chatService.save(messageRequest1));
+        assertThrows(CustomException.class, () -> chatService.save(messageRequest2));
+        assertThrows(CustomException.class, () -> chatService.save(messageRequest3));
     }
 
     /**
-     * clear()
+     * clear
      */
     @Test
-    @DisplayName("db에 저장된 대화 내용이 정상적으로 삭제되는 경우 true 리턴")
+    @DisplayName("db에 저장된 대화 내용이 정상적으로 삭제되는 경우, 결과물로 ChatResult 반환")
     void clear() {
         // given
+        String testNickname = TEST_USER_NICKNAME;
         LocalDateTime now = LocalDateTime.now();
-        String email = "test@test.com";
         List<Chat> chatList = Arrays.asList(
                 Chat.builder()
-                        .email(email)
+                        .nickname(testNickname)
                         .role(ROLE_ASSISTANT)
                         .message("test message 1")
                         .time(now)
                         .build(),
                 Chat.builder()
-                        .email(email)
+                        .nickname(testNickname)
                         .role(ROLE_USER)
                         .message("Here is test message 2")
                         .time(now.plusMinutes(10))
@@ -226,55 +255,15 @@ class ChatServiceTest {
         chatRepository.saveAll(chatList);
 
         // when
-        boolean result = chatService.clear(email);
+        // delete All data, and save one welcome message data
+        ChatResult chatResult = chatService.clear(testNickname);
 
         // then
-        assertThat(result).isTrue();
+        List<Chat> chats = chatRepository.findAll();
+        assertThat(chats.size()).isOne();
 
-        // double check if data is not exists
-        Query query = new Query();
-        query.addCriteria(Criteria.where("email").is(email));
-        List<Chat> resultList = mongoTemplate.find(query, Chat.class);
-        assertThat(resultList.isEmpty()).isTrue();
+        assertThat(chatResult.getChatResponse()).isNotNull();   // order doesn't exists
+        assertThat(chatResult.getChatOrderResponse()).isNull(); // order exists
     }
 
-    /**
-     * createAndSaveWelcomeMessage()
-     */
-    @Test
-    @DisplayName("정상적으로 요청이 처리되는 경우")
-    void createAndSaveWelcomeMessage() {
-        // given
-        String testEmail = "test_2@kakao.com";
-
-        // when
-        ChatResponse response = chatService.createAndSaveWelcomeMessage(testEmail);
-
-        // then
-        assertThat(response.getRole()).isEqualTo(ROLE_ASSISTANT);
-        assertThat(response.getOrder()).isNull();
-        assertThat(response.getContent()).isEqualTo(WELCOME_MESSAGE);
-    }
-
-    @Test
-    @DisplayName("정상적으로 요청이 처리되는 경우에 timezone 변경 처리가 정상적으로 되는지 검증")
-    void createAndSaveWelcomeMessage_change_timezone_is_applied() throws InterruptedException {
-        // given
-        String testEmail = "test_2@kakao.com";
-        LocalDateTime now = LocalDateTime.now().withNano(0);
-
-        // when
-        Thread.sleep(3000); // sleep 3 seconds
-        ChatResponse response = chatService.createAndSaveWelcomeMessage(testEmail);
-
-        // then
-        String respTime = response.getTime();
-
-        // parse String -> LocalDateTime
-        respTime = respTime.replace("T", " ");
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        LocalDateTime dateTime = LocalDateTime.parse(respTime, formatter);
-
-        assertThat(now.isBefore(dateTime)).isTrue();
-    }
 }

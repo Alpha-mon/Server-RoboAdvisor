@@ -10,7 +10,7 @@ public interface ChatRepository extends MongoRepository<Chat, String> {
 
     boolean existsChatByNickname(String nickname);
 
-    @Query(value = "{ 'email' : ?0 }", delete = true)
-    long deleteAllByEmail(String email);
+    @Query(value = "{ 'nickname' : ?0 }", delete = true)
+    long deleteAllByNickname(String nickname);
 
 }

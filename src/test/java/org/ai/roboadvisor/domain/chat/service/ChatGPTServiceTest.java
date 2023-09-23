@@ -8,7 +8,6 @@ import com.google.gson.Gson;
 import org.ai.roboadvisor.domain.chat.dto.Message;
 import org.ai.roboadvisor.domain.chat.dto.request.ChatGptRequest;
 import org.ai.roboadvisor.domain.chat.dto.response.ChatGptResponse;
-import org.ai.roboadvisor.global.exception.CustomException;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,7 +21,6 @@ import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
 @SpringBootTest
