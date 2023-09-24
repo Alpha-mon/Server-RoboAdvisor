@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.ai.roboadvisor.domain.community.dto.request.PostDeleteRequest;
 import org.ai.roboadvisor.domain.community.dto.request.PostRequest;
 import org.ai.roboadvisor.domain.community.dto.response.PostResponse;
 import org.ai.roboadvisor.domain.community.service.PostService;
@@ -163,8 +164,9 @@ public class PostController {
                     )))
     @ApiResponse_Internal_Server_Error
     @DeleteMapping("/{postId}")
-    public ResponseEntity<SuccessApiResponse<?>> delete(@PathVariable("postId") Long postId, @RequestBody PostRequest postRequest) {
-        int result = postService.delete(postId, postRequest);
+    public ResponseEntity<SuccessApiResponse<?>> delete(@PathVariable("postId") Long postId,
+                                                        @RequestBody PostDeleteRequest postDeleteRequest) {
+        int result = postService.delete(postId, postDeleteRequest);
         if (result == SUCCESS.getValue()) {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(SuccessApiResponse.success(SuccessCode.POST_DELETE_SUCCESS));

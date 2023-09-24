@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.ai.roboadvisor.domain.tendency.entity.Tendency;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)  // 인자 없는 기본 생성자 필요
@@ -32,6 +33,14 @@ public class Post extends BaseTimeEntity {
     @Column(name = "post_view_count", columnDefinition = "INTEGER DEFAULT 0")
     private Long viewCount;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "post_delete_status", nullable = false,
+            columnDefinition = "ENUM('T', 'F') DEFAULT 'F'")
+    private DeleteStatus deleteStatus;
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Comment> comments;
+
     @Builder
     private Post(Tendency tendency, String nickname, String content, Long viewCount) {
         this.tendency = tendency;
@@ -56,4 +65,7 @@ public class Post extends BaseTimeEntity {
         this.viewCount = viewCount;
     }
 
+    public void setDeleteStatus(DeleteStatus deleteStatus) {
+        this.deleteStatus = deleteStatus;
+    }
 }
