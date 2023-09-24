@@ -7,6 +7,7 @@ import org.ai.roboadvisor.domain.community.dto.request.PostRequest;
 import org.ai.roboadvisor.domain.community.dto.response.PostResponse;
 import org.ai.roboadvisor.domain.community.entity.DeleteStatus;
 import org.ai.roboadvisor.domain.community.entity.Post;
+import org.ai.roboadvisor.domain.community.repository.CommentRepository;
 import org.ai.roboadvisor.domain.community.repository.PostRepository;
 import org.ai.roboadvisor.domain.tendency.entity.Tendency;
 import org.ai.roboadvisor.global.exception.CustomException;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PostService {
 
     private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
 
     @Transactional
     public PostResponse save(PostRequest postRequest) {
@@ -73,6 +75,10 @@ public class PostService {
 
         // manually delete a post
         deletePost(existingPost);
+
+        // manually delete comments related to a post
+        commentRepository.markCommentsAsDeleted(postId, DeleteStatus.T);
+
         return PostResponse.fromPostEntity(existingPost);
     }
 
