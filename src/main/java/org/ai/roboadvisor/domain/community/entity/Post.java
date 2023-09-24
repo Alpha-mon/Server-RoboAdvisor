@@ -46,7 +46,10 @@ public class Post extends BaseTimeEntity {
             columnDefinition = "ENUM('T', 'F') DEFAULT 'F'")
     private DeleteStatus deleteStatus;
 
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // 게시글 UI에서 댓글을 바로 보여주기 위해 FetchType.EAGER 설정
+    // (댓글-펼처보기 와 같은 형식이면 LAZY로)
+    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
+    @OrderBy("id asc") // 댓글 정렬
     private List<Comment> comments;
 
     @Builder

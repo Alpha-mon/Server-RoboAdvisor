@@ -10,6 +10,8 @@ import org.ai.roboadvisor.domain.community.dto.response.PostResponse;
 import org.ai.roboadvisor.domain.community.service.PostService;
 import org.ai.roboadvisor.domain.community.swagger_annotation.post.delete.delete_OK;
 import org.ai.roboadvisor.domain.community.swagger_annotation.post.delete.delete_UNAUTHORIZED;
+import org.ai.roboadvisor.domain.community.swagger_annotation.post.getPostById.getPostById_BAD_REQUEST;
+import org.ai.roboadvisor.domain.community.swagger_annotation.post.getPostById.getPostById_OK;
 import org.ai.roboadvisor.domain.community.swagger_annotation.post.save.save_BAD_REQUEST;
 import org.ai.roboadvisor.domain.community.swagger_annotation.post.save.save_CREATED;
 import org.ai.roboadvisor.domain.community.swagger_annotation.post.update.update_BAD_REQUEST;
@@ -24,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RequiredArgsConstructor
-@Tag(name = "community] post", description = "게시글 작성, 수정, 삭제 API")
+@Tag(name = "community] post", description = "게시글 CRUD API")
 @RestController
 @RequestMapping("/api/community/post")
 public class PostController {
@@ -39,6 +41,17 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(SuccessApiResponse.success(SuccessCode.POST_CREATED_SUCCESS,
                         postService.save(postRequest)));
+    }
+
+    @Operation(summary = "게시글 조회", description = "게시글 조회 API")
+    @getPostById_OK
+    @getPostById_BAD_REQUEST
+    @ApiResponse_Internal_Server_Error
+    @GetMapping("/{postId}")
+    public ResponseEntity<SuccessApiResponse<PostResponse>> getPostById(@PathVariable("postId") Long postId) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(SuccessApiResponse.success(SuccessCode.POST_VIEW_SUCCESS,
+                        postService.getPostById(postId)));
     }
 
     @Operation(summary = "게시글 수정", description = "게시글 수정 API")

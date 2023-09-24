@@ -24,7 +24,7 @@ public enum SuccessCode {
     // community
     POST_UPDATE_SUCCESS(HttpStatus.OK.value(), "게시글 수정이 정상적으로 처리되었습니다"),
     POST_DELETE_SUCCESS(HttpStatus.OK.value(), "게시글 삭제가 정상적으로 처리되었습니다"),
-    BOARD_VIEW_SUCCESS(HttpStatus.OK.value(), "게시글을 조회하는데 성공하셨습니다"),
+    POST_VIEW_SUCCESS(HttpStatus.OK.value(), "게시글을 조회하는데 성공하셨습니다"),
     BOARD_ALL_VIEW_SUCCESS(HttpStatus.OK.value(), "게시글을 불러오는데 성공하셨습니다"),
     COMMENT_UPDATE_SUCCESS(HttpStatus.OK.value(), "댓글 수정이 정상적으로 처리되었습니다"),
     COMMENT_DELETE_SUCCESS(HttpStatus.OK.value(), "댓글 삭제가 정상적으로 처리되었습니다"),
