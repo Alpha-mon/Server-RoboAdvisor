@@ -15,6 +15,14 @@ import java.util.List;
 @Table(name = "posts")
 public class Post extends BaseTimeEntity {
 
+    //   // deleteStatus is initialized before the entity is persisted:
+    @PrePersist
+    private void prePersist() {
+        if (deleteStatus == null) {
+            deleteStatus = DeleteStatus.F;
+        }
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "post_id")

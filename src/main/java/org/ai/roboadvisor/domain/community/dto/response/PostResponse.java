@@ -18,13 +18,13 @@ public class PostResponse {
     private String content;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
-    private LocalDateTime time;
+    private LocalDateTime createdDateTime;
 
     private Long viewCount;
 
-    public static PostResponse of(Long id, Tendency tendency, String nickname, String content, LocalDateTime time,
+    public static PostResponse of(Long id, Tendency tendency, String nickname, String content, LocalDateTime createdDateTime,
                                   Long viewCount) {
-        return new PostResponse(id, tendency, nickname, content, time, viewCount);
+        return new PostResponse(id, tendency, nickname, content, createdDateTime, viewCount);
     }
 
     public static PostResponse fromPostEntity(Post post) {

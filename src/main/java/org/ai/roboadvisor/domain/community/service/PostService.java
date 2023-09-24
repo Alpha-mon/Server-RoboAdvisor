@@ -14,8 +14,6 @@ import org.ai.roboadvisor.global.exception.ErrorCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.ai.roboadvisor.global.exception.ErrorIntValue.*;
-
 @Slf4j
 @RequiredArgsConstructor
 @Service
@@ -34,8 +32,7 @@ public class PostService {
         // save
         savePost(newPost);
 
-        return PostResponse.of(newPost.getId(), newPost.getTendency(), newPost.getNickname(),
-                newPost.getContent(), newPost.getCreatedDateTime(), newPost.getViewCount());
+        return PostResponse.fromPostEntity(newPost);
     }
 
     @Transactional
@@ -55,7 +52,7 @@ public class PostService {
     }
 
     @Transactional
-    public int delete(Long postId, PostDeleteRequest postDeleteRequest) {
+    public PostResponse delete(Long postId, PostDeleteRequest postDeleteRequest) {
         Post existingPost = findExistingPostById(postId);
 
         // validate if user has authority
@@ -63,7 +60,7 @@ public class PostService {
 
         // manually delete a post
         deletePost(existingPost);
-        return SUCCESS.getValue();
+        return PostResponse.fromPostEntity(existingPost);
     }
 
     private void checkTendencyIsValid(Tendency tendency) {

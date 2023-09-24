@@ -12,7 +12,8 @@ import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
 
-    Optional<Post> findPostById(Long id);
+    @Query("SELECT p FROM Post p WHERE p.id = :id AND p.deleteStatus = 'F'")
+    Optional<Post> findPostById(@Param("id") Long id);
 
     @Query("SELECT p FROM Post p WHERE p.tendency = :tendency AND p.deleteStatus = 'F'")
     Page<Post> findPostsByTendencyAndDeleteStatusIsFalse(@Param("tendency") Tendency tendency, Pageable pageable);
