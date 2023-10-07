@@ -7,12 +7,21 @@ import lombok.NoArgsConstructor;
 import org.ai.roboadvisor.domain.tendency.entity.Tendency;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)  // 인자 없는 기본 생성자 필요
 @Entity
 @Table(name = "posts")
 public class Post extends BaseTimeEntity {
+
+    //   // deleteStatus is initialized before the entity is persisted:
+    @PrePersist
+    private void prePersist() {
+        if (deleteStatus == null) {
+            deleteStatus = DeleteStatus.F;
+        }
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,6 +40,17 @@ public class Post extends BaseTimeEntity {
 
     @Column(name = "post_view_count", columnDefinition = "INTEGER DEFAULT 0")
     private Long viewCount;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "post_delete_status", nullable = false,
+            columnDefinition = "ENUM('T', 'F') DEFAULT 'F'")
+    private DeleteStatus deleteStatus;
+
+    // 게시글 UI에서 댓글을 바로 보여주기 위해 FetchType.EAGER 설정
+    // (댓글-펼처보기 와 같은 형식이면 LAZY로)
+    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
+    @OrderBy("id asc") // 댓글 정렬
+    private List<Comment> comments;
 
     @Builder
     private Post(Tendency tendency, String nickname, String content, Long viewCount) {
@@ -56,4 +76,7 @@ public class Post extends BaseTimeEntity {
         this.viewCount = viewCount;
     }
 
+    public void setDeleteStatus(DeleteStatus deleteStatus) {
+        this.deleteStatus = deleteStatus;
+    }
 }

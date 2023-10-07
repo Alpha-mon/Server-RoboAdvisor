@@ -2,9 +2,12 @@ package org.ai.roboadvisor.domain.community.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.ai.roboadvisor.domain.community.dto.request.PostDeleteRequest;
 import org.ai.roboadvisor.domain.community.dto.request.PostRequest;
 import org.ai.roboadvisor.domain.community.dto.response.PostResponse;
+import org.ai.roboadvisor.domain.community.entity.DeleteStatus;
 import org.ai.roboadvisor.domain.community.entity.Post;
+import org.ai.roboadvisor.domain.community.repository.CommentRepository;
 import org.ai.roboadvisor.domain.community.repository.PostRepository;
 import org.ai.roboadvisor.domain.tendency.entity.Tendency;
 import org.ai.roboadvisor.global.exception.CustomException;
@@ -12,14 +15,13 @@ import org.ai.roboadvisor.global.exception.ErrorCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.ai.roboadvisor.global.exception.ErrorIntValue.*;
-
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class PostService {
 
     private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
 
     @Transactional
     public PostResponse save(PostRequest postRequest) {
@@ -32,8 +34,20 @@ public class PostService {
         // save
         savePost(newPost);
 
-        return PostResponse.of(newPost.getId(), newPost.getTendency(), newPost.getNickname(),
-                newPost.getContent(), newPost.getCreatedDateTime(), newPost.getViewCount());
+        return PostResponse.fromPostEntity(newPost);
+    }
+
+    @Transactional
+    public PostResponse getPostById(Long id) {
+        Post post = postRepository.findPostById(id).orElseThrow(() -> {
+            // Throw a more specific exception, e.g., PostNotFoundException
+            return new CustomException(ErrorCode.POST_ID_NOT_EXISTS);
+        });
+
+        // update view
+        post.setViewCount(post.getViewCount() + 1);
+
+        return PostResponse.fromPostEntity(post);
     }
 
     @Transactional
@@ -44,7 +58,7 @@ public class PostService {
         checkTendencyIsValid(postRequest.getTendency());
 
         // validate if user has authority
-        validateUserHasAuthority(postRequest, existingPost);
+        validateUserHasAuthority(postRequest.getNickname(), existingPost);
 
         // update
         updatePostEntity(existingPost, postRequest);
@@ -53,19 +67,19 @@ public class PostService {
     }
 
     @Transactional
-    public int delete(Long postId, PostRequest postRequest) {
+    public PostResponse delete(Long postId, PostDeleteRequest postDeleteRequest) {
         Post existingPost = findExistingPostById(postId);
 
         // validate if user has authority
-        validateUserHasAuthority(postRequest, existingPost);
+        validateUserHasAuthority(postDeleteRequest.getNickname(), existingPost);
 
-        try {
-            postRepository.delete(existingPost);
-            return SUCCESS.getValue();
-        } catch (RuntimeException e) {
-            log.error("e : ", e);
-            return INTERNAL_SERVER_ERROR.getValue();
-        }
+        // manually delete a post
+        deletePost(existingPost);
+
+        // manually delete comments related to a post
+        commentRepository.markCommentsAsDeleted(postId, DeleteStatus.T);
+
+        return PostResponse.fromPostEntity(existingPost);
     }
 
     private void checkTendencyIsValid(Tendency tendency) {
@@ -88,8 +102,8 @@ public class PostService {
                 .orElseThrow(() -> new CustomException(ErrorCode.INTERNAL_SERVER_ERROR));
     }
 
-    private void validateUserHasAuthority(PostRequest postRequest, Post existingPost) {
-        if (!postRequest.getNickname().equals(existingPost.getNickname())) {
+    private void validateUserHasAuthority(String requestNickname, Post existingPost) {
+        if (!(requestNickname.equals(existingPost.getNickname()))) {
             throw new CustomException(ErrorCode.USER_HAS_NOT_AUTHORIZED);
         }
     }
@@ -97,5 +111,9 @@ public class PostService {
     private void updatePostEntity(Post existingPost, PostRequest postRequest) {
         existingPost.setTendency(postRequest.getTendency());
         existingPost.setContent(postRequest.getContent());
+    }
+
+    private void deletePost(Post post) {
+        post.setDeleteStatus(DeleteStatus.T);
     }
 }
