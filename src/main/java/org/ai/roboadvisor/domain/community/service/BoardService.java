@@ -25,20 +25,18 @@ public class BoardService {
 
     @Transactional(readOnly = true)
     public List<BoardResponse> getAllPostsByType(Tendency tendency, Pageable pageable) {
-        Page<Post> posts = postRepository.findPostsByTendencyAndDeleteStatusIsFalse(tendency, pageable);
+        // check tendency type
+        checkTendencyIsValid(tendency);
 
+        Page<Post> posts = postRepository.findPostsByTendencyAndDeleteStatusIsFalse(tendency, pageable);
         return posts.stream()
-                .map(p -> {
-                    int commentCnt = findCommentsByPostId(p.getId());
-                    return BoardResponse.fromPostAndCommentCount(p, commentCnt);
-                })
+                .map(BoardResponse::fromPostAndCommentCount)
                 .collect(Collectors.toList());
     }
 
-    public int findCommentsByPostId(Long postId) {
-        Post post = postRepository.findPostById(postId)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_ID_NOT_EXISTS));
-        return post.getComments().size();
+    private void checkTendencyIsValid(Tendency tendency) {
+        if (tendency == Tendency.TYPE_NOT_EXISTS) {
+            throw new CustomException(ErrorCode.TENDENCY_INPUT_INVALID);
+        }
     }
-
 }
