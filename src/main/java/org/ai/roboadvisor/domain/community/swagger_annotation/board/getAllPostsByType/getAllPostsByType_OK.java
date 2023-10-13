@@ -16,15 +16,17 @@ import java.lang.annotation.*;
                 
         Pagination을 사용하여, page=0, 1, 2, ... 숫자를 증가시킴에 따라 연속해서 게시글을 가져올 수 있다.
                 
-        하나의 page 마다 10개의 게시글을 가져오도록 구현되어 있으며, 이는 변경이 가능하다.
+        page 0, 1, 2, ... 마다 각각 10개의 게시글을 가져오도록 구현되어 있으며, 이는 수정이 가능하다. 
                 
         요청 예시는 다음과 같다: [api url]/api/community/board?tendency=LION&page=0
                 
         data Array 내에서 각 인덱스가 하나의 게시글 정보이다.
                 
+        id 값이 클 수록 나중에 작성된 게시글이다.
+                
         id: 게시글 id, tendency: 투자 성향, nickname: 작성자 닉네임, content: 게시글 내용,
                 
-        createdDateTime: 게시글 작성 시간, viewCount: 조회수, commentCount: 게시글 내의 댓글 개수
+        createdDateTime: 게시글 작성 시간, viewCount: 게시글 조회수, commentCount: 게시글 내의 댓글 개수
         """,
         content = @Content(schema = @Schema(implementation = SuccessApiResponse.class),
                 examples =
@@ -111,7 +113,6 @@ import java.lang.annotation.*;
                                    }
                                 """
                 )
-
         ))
 public @interface getAllPostsByType_OK {
 }
