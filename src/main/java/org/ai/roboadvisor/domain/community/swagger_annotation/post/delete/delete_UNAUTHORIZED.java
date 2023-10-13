@@ -17,10 +17,10 @@ import java.lang.annotation.*;
                         description = "게시글 삭제 권한이 없는 예시",
                         value = """
                                    {
-                                        "code": 401,
-                                        "message": "게시글 수정 혹은 삭제 권한이 존재하지 않습니다",
-                                        "data": null
-                                    }
+                                         "code": 401,
+                                         "message": "사용자에게 권한이 존재하지 않습니다",
+                                         "data": null
+                                     }
                                 """
                 )))
 public @interface delete_UNAUTHORIZED {

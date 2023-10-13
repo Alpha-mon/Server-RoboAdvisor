@@ -13,8 +13,8 @@ import java.util.Optional;
 public interface CommentRepository extends JpaRepository<Comment, Long> {
     Optional<Comment> findCommentByIdAndPost(Long id, Post post);
 
-    @Modifying
-    @Query("UPDATE Comment c SET c.deleteStatus = :deleteStatus WHERE c.post.id = :postId")
-    void markCommentsAsDeleted(@Param("postId") Long postId, @Param("deleteStatus") DeleteStatus deleteStatus);
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE Comment c SET c.deleteStatus = :deleteStatus WHERE c.post= :post")
+    void markCommentsAsDeleted(@Param("post") Post post, @Param("deleteStatus") DeleteStatus deleteStatus);
 
 }

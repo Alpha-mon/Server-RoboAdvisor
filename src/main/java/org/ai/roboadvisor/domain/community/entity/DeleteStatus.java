@@ -3,9 +3,10 @@ package org.ai.roboadvisor.domain.community.entity;
 public enum DeleteStatus {
     /**
      * Used in Post, Comment entity
-     * T: Delete is True
-     * F: Delete is False
+     * T: Deleted
+     * F: Not Deleted
      * Default: F
      */
-    T, F
+    T,
+    F
 }

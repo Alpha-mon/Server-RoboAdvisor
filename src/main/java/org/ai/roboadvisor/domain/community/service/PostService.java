@@ -4,7 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ai.roboadvisor.domain.community.dto.request.PostDeleteRequest;
 import org.ai.roboadvisor.domain.community.dto.request.PostRequest;
+import org.ai.roboadvisor.domain.community.dto.response.PostDeleteResponse;
 import org.ai.roboadvisor.domain.community.dto.response.PostResponse;
+import org.ai.roboadvisor.domain.community.entity.Comment;
 import org.ai.roboadvisor.domain.community.entity.DeleteStatus;
 import org.ai.roboadvisor.domain.community.entity.Post;
 import org.ai.roboadvisor.domain.community.repository.CommentRepository;
@@ -22,6 +24,7 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
+
 
     @Transactional
     public PostResponse save(PostRequest postRequest) {
@@ -67,7 +70,7 @@ public class PostService {
     }
 
     @Transactional
-    public PostResponse delete(Long postId, PostDeleteRequest postDeleteRequest) {
+    public PostDeleteResponse delete(Long postId, PostDeleteRequest postDeleteRequest) {
         Post existingPost = findExistingPostById(postId);
 
         // validate if user has authority
@@ -77,9 +80,12 @@ public class PostService {
         deletePost(existingPost);
 
         // manually delete comments related to a post
-        commentRepository.markCommentsAsDeleted(postId, DeleteStatus.T);
+        commentRepository.markCommentsAsDeleted(existingPost, DeleteStatus.T);
+        for (Comment comment : existingPost.getComments()) {
+            comment.setDeleteStatus(DeleteStatus.T);
+        }
 
-        return PostResponse.fromPostEntity(existingPost);
+        return PostDeleteResponse.fromPostEntity(existingPost);
     }
 
     private void checkTendencyIsValid(Tendency tendency) {
@@ -111,6 +117,7 @@ public class PostService {
     private void updatePostEntity(Post existingPost, PostRequest postRequest) {
         existingPost.setTendency(postRequest.getTendency());
         existingPost.setContent(postRequest.getContent());
+        existingPost.setViewCount(existingPost.getViewCount() + 1); // add view count + 1
     }
 
     private void deletePost(Post post) {
