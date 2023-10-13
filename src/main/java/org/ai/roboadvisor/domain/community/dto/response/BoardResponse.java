@@ -23,8 +23,8 @@ public class BoardResponse {
     private Long viewCount;
     private int commentCount;   // number of comments in a post
 
-    public static BoardResponse fromPostAndCommentCount(Post post, int commentCount) {
+    public static BoardResponse fromPostAndCommentCount(Post post) {
         return new BoardResponse(post.getId(), post.getTendency(), post.getNickname(),
-                post.getContent(), post.getCreatedDateTime(), post.getViewCount(), commentCount);
+                post.getContent(), post.getCreatedDateTime(), post.getViewCount(), post.getComments().size());
     }
 }
