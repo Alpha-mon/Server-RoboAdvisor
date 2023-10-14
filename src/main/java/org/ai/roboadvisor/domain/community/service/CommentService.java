@@ -7,12 +7,14 @@ import org.ai.roboadvisor.domain.community.dto.request.CommentRequest;
 import org.ai.roboadvisor.domain.community.dto.request.CommentUpdateRequest;
 import org.ai.roboadvisor.domain.community.dto.response.CommentDeleteResponse;
 import org.ai.roboadvisor.domain.community.dto.response.CommentResponse;
+import org.ai.roboadvisor.domain.community.dto.response.CommentUpdateResponse;
 import org.ai.roboadvisor.domain.community.entity.Comment;
 import org.ai.roboadvisor.domain.community.entity.DeleteStatus;
 import org.ai.roboadvisor.domain.community.entity.Post;
 import org.ai.roboadvisor.domain.community.repository.CommentRepository;
 import org.ai.roboadvisor.domain.community.repository.PostRepository;
-import org.ai.roboadvisor.domain.tendency.entity.Tendency;
+import org.ai.roboadvisor.domain.user.entity.User;
+import org.ai.roboadvisor.domain.user.repository.UserRepository;
 import org.ai.roboadvisor.global.exception.CustomException;
 import org.ai.roboadvisor.global.exception.ErrorCode;
 import org.springframework.stereotype.Service;
@@ -23,28 +25,30 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class CommentService {
 
+    private final UserRepository userRepository;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
 
     @Transactional
     public CommentResponse save(Long postId, CommentRequest commentRequest) {
-        Tendency commentTendency = commentRequest.getTendency();
-        checkTendencyIsValid(commentTendency);
+        // 사용자 정보를 가져와서, 게시글의 투자 성향과 일치하는지 확인 필요(댓글 작성 권한 확인)
+        User user = validateUserAndGet(commentRequest.getNickname());
+        Post existPost = validatePostAndGet(postId);
+        checkUserHasAuthorization(user, existPost);
 
-        // 게시글의 tendency와 댓글의 tendency가 일치하는지 검증
-        Post existPost = postRepository.findPostById(postId)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_ID_NOT_EXISTS));
-        checkCommentIsValid(commentTendency, existPost);
+        // 부모 댓글 가져오기
+        Comment parentComment = null;
+        if (commentRequest.getParentCommentId() != null) {
+            parentComment = getValidParentComment(commentRequest.getParentCommentId());
+        }
 
-        Comment newComment = CommentRequest.fromCommentRequest(commentRequest, existPost);
-
-        // save
+        Comment newComment = createNewCommentFromRequest(commentRequest, existPost, parentComment);
         saveComment(newComment);
         return CommentResponse.fromCommentEntity(newComment);
     }
 
     @Transactional
-    public CommentResponse update(Long postId, CommentUpdateRequest commentUpdateRequest) {
+    public CommentUpdateResponse update(Long postId, CommentUpdateRequest commentUpdateRequest) {
         Comment existingComment = findExistingCommentById(postId, commentUpdateRequest.getCommentId());
 
         // validate if user has authority
@@ -53,7 +57,7 @@ public class CommentService {
         // update
         updateCommentEntity(existingComment, commentUpdateRequest);
 
-        return CommentResponse.fromCommentEntity(existingComment);
+        return CommentUpdateResponse.fromCommentEntity(existingComment);
     }
 
     @Transactional
@@ -69,15 +73,33 @@ public class CommentService {
         return CommentDeleteResponse.fromCommentEntity(existingComment);
     }
 
-    private void checkTendencyIsValid(Tendency tendency) {
-        if (tendency == Tendency.TYPE_NOT_EXISTS) {
-            throw new CustomException(ErrorCode.TENDENCY_INPUT_INVALID);
-        }
+    private User validateUserAndGet(String nickname) {
+        return userRepository.findUserByNickname(nickname)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_EXISTED));
     }
 
-    private void checkCommentIsValid(Tendency tendency, Post post) {
+    private Post validatePostAndGet(Long postId) {
+        return postRepository.findPostById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_EXISTED));
+    }
+
+    private Comment getValidParentComment(Long parentCommentId) {
+        return commentRepository.findById(parentCommentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_EXISTED));
+    }
+
+    private Comment createNewCommentFromRequest(CommentRequest commentRequest, Post existPost, Comment parentComment) {
+        Comment newComment = CommentRequest.fromCommentRequest(commentRequest, existPost);
+        if (parentComment != null) {
+            newComment.setParent(parentComment);
+            parentComment.getChildren().add(newComment);
+        }
+        return newComment;
+    }
+
+    private void checkUserHasAuthorization(User user, Post post) {
         // check tendency of post and comment is the same
-        if (tendency != post.getTendency()) {
+        if (user.getTendency() != post.getTendency()) {
             throw new CustomException(ErrorCode.TENDENCY_NOT_MATCH_BETWEEN_POST_AND_COMMENT);
         }
     }
@@ -93,7 +115,7 @@ public class CommentService {
 
     private Comment findExistingCommentById(Long postId, Long commentId) {
         Post existPost = postRepository.findPostById(postId)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_ID_NOT_EXISTS));
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_EXISTED));
         return commentRepository.findCommentByIdAndPost(commentId, existPost)
                 .orElseThrow(() -> new CustomException(ErrorCode.INTERNAL_SERVER_ERROR));
     }

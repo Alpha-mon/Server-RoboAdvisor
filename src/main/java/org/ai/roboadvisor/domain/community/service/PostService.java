@@ -44,7 +44,7 @@ public class PostService {
     public PostResponse getPostById(Long id) {
         Post post = postRepository.findPostById(id).orElseThrow(() -> {
             // Throw a more specific exception, e.g., PostNotFoundException
-            return new CustomException(ErrorCode.POST_ID_NOT_EXISTS);
+            return new CustomException(ErrorCode.POST_NOT_EXISTED);
         });
 
         // update view

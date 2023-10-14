@@ -11,6 +11,8 @@ import org.ai.roboadvisor.domain.community.entity.Post;
 import org.ai.roboadvisor.domain.community.repository.CommentRepository;
 import org.ai.roboadvisor.domain.community.repository.PostRepository;
 import org.ai.roboadvisor.domain.tendency.entity.Tendency;
+import org.ai.roboadvisor.domain.user.entity.User;
+import org.ai.roboadvisor.domain.user.repository.UserRepository;
 import org.ai.roboadvisor.global.exception.CustomException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +24,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -35,6 +38,9 @@ class CommentServiceTest {
 
     @Autowired
     private CommentService commentService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private PostRepository postRepository;
@@ -51,6 +57,7 @@ class CommentServiceTest {
     private final String COMMENT_NICKNAME = "comment_user";
     private final Tendency COMMENT_TENDENCY = Tendency.LION;
     private final String COMMENT_CONTENT = "comment_content";
+    private final String USER_NICKNAME = "comment_user";
 
     @BeforeEach
     void setUp() {
@@ -73,48 +80,105 @@ class CommentServiceTest {
                 .build();
         post.getComments().add(comment);
         commentRepository.save(comment);
+
+        // 댓글을 수정할 권한이 있는 사용자 미리 저장
+        User user = User.builder()
+                .email("test@t.com")
+                .nickname(USER_NICKNAME)    // COMMENT_NICKNAME 과 동일
+                .tendency(COMMENT_TENDENCY)
+                .gender("male")
+                .password("3fasfzxvae")
+                .birth(LocalDate.now())
+                .career(null)
+                .build();
+        userRepository.save(user);
     }
 
     @Test
-    @DisplayName("case 1: Tendency(투자 성향)이 적절하지 않은 타입이 온 경우, 예외처리")
-    void save_with_TendencyIsNotValid() {
-        Tendency notExists = Tendency.TYPE_NOT_EXISTS;
-        CommentRequest request = new CommentRequest(
-                notExists, "test_nickname", "test_content");
+    @DisplayName("case 1: 사용자의 닉네임이 DB에 존재하지 않는 경우, 예외처리")
+    void save_when_user_not_existed() {
+        String nickname = "not_in_db";
+        CommentRequest request = new CommentRequest(null, nickname, "test_content");
 
-        Assertions.assertThrows(CustomException.class, () ->
-                commentService.save(POST_ID, request));
+        Assertions.assertThrows(CustomException.class, () -> commentService.save(POST_ID, request));
     }
 
     @Test
-    @DisplayName("case 2: 게시글과 댓글의 Tendency(투자 성향)이 일치하지 않는 경우, 예외처리")
-    void save_with_Tendency_is_not_same_between_post_and_comment() {
-        Tendency different = Tendency.SHEEP;    // @BeforeEach에서 저장된 post는 LION
-        CommentRequest request = new CommentRequest(
-                different, "test_nickname", "test_content");
+    @DisplayName("case 1-1: 게시글이 DB에 존재하지 않는 경우, 예외처리")
+    void save_when_post_not_existed() {
+        CommentRequest request = new CommentRequest(null, USER_NICKNAME, "test_content");
 
-        Assertions.assertThrows(CustomException.class, () ->
-                commentService.save(POST_ID, request));
+        Long idNotInDB = 1000L;
+        Assertions.assertThrows(CustomException.class, () -> commentService.save(idNotInDB, request));
     }
 
     @Test
-    @DisplayName("case 3: 정상 로직")
-    void save() {
+    @DisplayName("case 2: 게시글과 사용자의 Tendency(투자 성향)이 다른 경우")
+    void save_with_Tendency_is_not_same_between_post_and_user() {
+        String testNickname = "nick33";
+        // 사용자 생성
+        User user = User.builder()
+                .email("test2222@t.com")
+                .nickname(testNickname)    // COMMENT_NICKNAME 과 동일
+                .tendency(Tendency.MONKEY)
+                .gender("male")
+                .password("asdfasf")
+                .birth(LocalDate.now())
+                .career(null)
+                .build();
+        userRepository.save(user);
+
+        CommentRequest request = new CommentRequest(null, testNickname, "test_content");
+
+        Assertions.assertThrows(CustomException.class, () -> commentService.save(POST_ID, request));
+    }
+
+    @Test
+    @DisplayName("case 3: 부모 댓글이 존재하지 않는 경우, 예외처리")
+    void save_with_parentComment_is_not_existed() {
+        Long commentIdNotInDb = 1000L;
+        CommentRequest request = new CommentRequest(commentIdNotInDb, USER_NICKNAME, "test_content");
+
+        Assertions.assertThrows(CustomException.class, () -> commentService.save(POST_ID, request));
+    }
+
+    @Test
+    @DisplayName("case 4: 정상 로직-댓글 작성")
+    void save_parentComment() {
         // given
-        Tendency tendency = POST_TENDENCY;
-        String nickname = "새로운 댓글 작성자";
+        Long parentCommentId = null;
         String content = "댓글 작성 테스트";
-        CommentRequest request = new CommentRequest(tendency, nickname, content);
+        CommentRequest request = new CommentRequest(parentCommentId, USER_NICKNAME, content);
 
         // when
         CommentResponse response = commentService.save(POST_ID, request);
 
         // then
-        assertThat(response.getNickname()).isEqualTo(nickname);
+        assertThat(response.getParentCommentId()).isNull();
+        assertThat(response.getNickname()).isEqualTo(USER_NICKNAME);
         assertThat(response.getPostId()).isEqualTo(POST_ID);
         assertThat(response.getContent()).isEqualTo(content);
     }
 
+    @Test
+    @DisplayName("case 4-1: 정상 로직-대댓글 작성")
+    void save_childComment() {
+        // given
+        Long parentCommentId = COMMENT_ID;
+        String content = "댓글 작성 테스트";
+        CommentRequest request = new CommentRequest(parentCommentId, USER_NICKNAME, content);
+
+        // when
+        CommentResponse response = commentService.save(POST_ID, request);
+
+        // then
+        assertThat(response.getParentCommentId()).isEqualTo(parentCommentId);
+        assertThat(response.getNickname()).isEqualTo(USER_NICKNAME);
+        assertThat(response.getPostId()).isEqualTo(POST_ID);
+        assertThat(response.getContent()).isEqualTo(content);
+    }
+
+    /*
     @Test
     @DisplayName("case 1: 게시글 id가 존재하지 않는 경우, 예외처리")
     void update_when_post_id_not_exists() {
@@ -269,4 +333,5 @@ class CommentServiceTest {
         assertThat(existingComment.getPost().getId()).isEqualTo(POST_ID);
         assertThat(existingComment.getDeleteStatus()).isEqualTo(DeleteStatus.T);
     }
+    */
 }

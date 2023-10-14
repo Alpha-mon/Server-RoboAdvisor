@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.ai.roboadvisor.domain.community.entity.Comment;
 import org.ai.roboadvisor.domain.community.entity.Post;
-import org.ai.roboadvisor.domain.tendency.entity.Tendency;
 
 import javax.validation.constraints.NotBlank;
 
@@ -15,11 +14,17 @@ import javax.validation.constraints.NotBlank;
 @AllArgsConstructor
 public class CommentRequest {
 
-    @Schema(description = "사용자의 투자 성향", example = "SHEEP")
-    @NotBlank
-    private Tendency tendency;
+    @Schema(description = """
+            부모 댓글의 id.
+                 
+            최상위 댓글의 경우 null값을 담아서 요청을 보낸다.
+                 
+            대댓글의 경우 부모 댓글의 id값을 담아서 요청을 보낸다.
 
-    @Schema(description = "사용자의 닉네임", example = "testUser")
+            """, example = "1")
+    private Long parentCommentId;
+
+    @Schema(description = "댓글 작성자의 닉네임", example = "testUser")
     @NotBlank
     private String nickname;
 

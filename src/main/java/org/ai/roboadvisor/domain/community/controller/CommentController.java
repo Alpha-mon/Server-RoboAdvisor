@@ -9,6 +9,7 @@ import org.ai.roboadvisor.domain.community.dto.request.CommentRequest;
 import org.ai.roboadvisor.domain.community.dto.request.CommentUpdateRequest;
 import org.ai.roboadvisor.domain.community.dto.response.CommentDeleteResponse;
 import org.ai.roboadvisor.domain.community.dto.response.CommentResponse;
+import org.ai.roboadvisor.domain.community.dto.response.CommentUpdateResponse;
 import org.ai.roboadvisor.domain.community.service.CommentService;
 import org.ai.roboadvisor.domain.community.swagger_annotation.comment.delete.*;
 import org.ai.roboadvisor.domain.community.swagger_annotation.comment.save.*;
@@ -22,14 +23,18 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RequiredArgsConstructor
-@Tag(name = "community] comment API", description = "댓글 작성, 수정, 삭제 API")
+@Tag(name = "community] comment API", description = "댓글 및 대댓글 작성, 수정, 삭제 API")
 @RestController
 @RequestMapping("/api/community/comment")
 public class CommentController {
 
     private final CommentService commentService;
 
-    @Operation(summary = "댓글 작성", description = "댓글 작성 API")
+    @Operation(summary = "댓글 및 대댓글 작성", description = """
+            댓글 및 대댓글 작성 API
+                        
+            아래 Schemas 중 RequestBody로 'CommentRequest' 를 사용한다.
+            """)
     @save_CREATED
     @save_BAD_REQUEST
     @save_UNAUTHORIZED
@@ -48,8 +53,8 @@ public class CommentController {
     @update_UNAUTHORIZED
     @ApiResponse_Internal_Server_Error
     @PatchMapping("/{postId}")
-    public ResponseEntity<SuccessApiResponse<CommentResponse>> update(@PathVariable("postId") Long postId,
-                                                                      @RequestBody CommentUpdateRequest commentUpdateRequest) {
+    public ResponseEntity<SuccessApiResponse<CommentUpdateResponse>> update(@PathVariable("postId") Long postId,
+                                                                            @RequestBody CommentUpdateRequest commentUpdateRequest) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(SuccessApiResponse.success(SuccessCode.COMMENT_UPDATE_SUCCESS,
                         commentService.update(postId, commentUpdateRequest)));

@@ -11,14 +11,14 @@ import java.lang.annotation.*;
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-@ApiResponse(responseCode = "401", description = "게시글과 댓글의 투자 성향이 다른 경우, 즉 댓글 작성 권한이 없는 경우",
+@ApiResponse(responseCode = "401", description = "게시글의 투자성향과 사용자의 투자 성향이 달라서, 사용자가 댓글 작성 권한이 없는 경우",
         content = @Content(schema = @Schema(implementation = SuccessApiResponse.class),
                 examples = @ExampleObject(name = "example",
-                        description = "게시글과 댓글의 투자 성향이 다른 경우 예시",
+                        description = "사용자가 댓글 작성 권한이 없는 경우 예시",
                         value = """
                                    {
                                        "code": 401,
-                                       "message": "게시글과 댓글의 투자 성향이 달라서 댓글을 작성할 수 없습니다",
+                                       "message": "게시글과 사용자의 투자 성향이 달라서 댓글을 작성할 수 없습니다",
                                        "data": null
                                    }
                                 """
