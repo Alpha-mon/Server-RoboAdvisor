@@ -100,7 +100,8 @@ class CommentServiceTest {
         String nickname = "not_in_db";
         CommentRequest request = new CommentRequest(null, nickname, "test_content");
 
-        Assertions.assertThrows(CustomException.class, () -> commentService.save(POST_ID, request));
+        Assertions.assertThrows(CustomException.class, () ->
+                commentService.save(POST_ID, request));
     }
 
     @Test
@@ -109,7 +110,8 @@ class CommentServiceTest {
         CommentRequest request = new CommentRequest(null, USER_NICKNAME, "test_content");
 
         Long idNotInDB = 1000L;
-        Assertions.assertThrows(CustomException.class, () -> commentService.save(idNotInDB, request));
+        Assertions.assertThrows(CustomException.class, () ->
+                commentService.save(idNotInDB, request));
     }
 
     @Test
@@ -130,7 +132,8 @@ class CommentServiceTest {
 
         CommentRequest request = new CommentRequest(null, testNickname, "test_content");
 
-        Assertions.assertThrows(CustomException.class, () -> commentService.save(POST_ID, request));
+        Assertions.assertThrows(CustomException.class, () ->
+                commentService.save(POST_ID, request));
     }
 
     @Test
@@ -139,7 +142,8 @@ class CommentServiceTest {
         Long commentIdNotInDb = 1000L;
         CommentRequest request = new CommentRequest(commentIdNotInDb, USER_NICKNAME, "test_content");
 
-        Assertions.assertThrows(CustomException.class, () -> commentService.save(POST_ID, request));
+        Assertions.assertThrows(CustomException.class, () ->
+                commentService.save(POST_ID, request));
     }
 
     @Test
@@ -178,7 +182,6 @@ class CommentServiceTest {
         assertThat(response.getContent()).isEqualTo(content);
     }
 
-    /*
     @Test
     @DisplayName("case 1: 게시글 id가 존재하지 않는 경우, 예외처리")
     void update_when_post_id_not_exists() {
@@ -252,12 +255,13 @@ class CommentServiceTest {
         CommentResponse response = commentService.update(POST_ID, request);
 
         // then
-        assertThat(response.getId()).isEqualTo(COMMENT_ID);
+        assertThat(response.getCommentId()).isEqualTo(COMMENT_ID);
         assertThat(response.getPostId()).isEqualTo(POST_ID);
         assertThat(response.getNickname()).isEqualTo(COMMENT_NICKNAME);
         assertThat(response.getContent()).isEqualTo(updateContent); // here is updated
     }
 
+    /*
     @Test
     @DisplayName("case 1: 게시글 id가 존재하지 않는 경우, 예외처리")
     void delete_when_post_id_not_exists() {

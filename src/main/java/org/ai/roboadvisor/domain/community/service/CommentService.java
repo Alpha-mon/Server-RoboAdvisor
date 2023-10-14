@@ -7,7 +7,6 @@ import org.ai.roboadvisor.domain.community.dto.request.CommentRequest;
 import org.ai.roboadvisor.domain.community.dto.request.CommentUpdateRequest;
 import org.ai.roboadvisor.domain.community.dto.response.CommentDeleteResponse;
 import org.ai.roboadvisor.domain.community.dto.response.CommentResponse;
-import org.ai.roboadvisor.domain.community.dto.response.CommentUpdateResponse;
 import org.ai.roboadvisor.domain.community.entity.Comment;
 import org.ai.roboadvisor.domain.community.entity.DeleteStatus;
 import org.ai.roboadvisor.domain.community.entity.Post;
@@ -48,7 +47,7 @@ public class CommentService {
     }
 
     @Transactional
-    public CommentUpdateResponse update(Long postId, CommentUpdateRequest commentUpdateRequest) {
+    public CommentResponse update(Long postId, CommentUpdateRequest commentUpdateRequest) {
         Comment existingComment = findExistingCommentById(postId, commentUpdateRequest.getCommentId());
 
         // validate if user has authority
@@ -57,7 +56,7 @@ public class CommentService {
         // update
         updateCommentEntity(existingComment, commentUpdateRequest);
 
-        return CommentUpdateResponse.fromCommentEntity(existingComment);
+        return CommentResponse.fromCommentEntity(existingComment);
     }
 
     @Transactional

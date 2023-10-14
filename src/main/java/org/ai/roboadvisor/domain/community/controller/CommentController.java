@@ -9,11 +9,16 @@ import org.ai.roboadvisor.domain.community.dto.request.CommentRequest;
 import org.ai.roboadvisor.domain.community.dto.request.CommentUpdateRequest;
 import org.ai.roboadvisor.domain.community.dto.response.CommentDeleteResponse;
 import org.ai.roboadvisor.domain.community.dto.response.CommentResponse;
-import org.ai.roboadvisor.domain.community.dto.response.CommentUpdateResponse;
 import org.ai.roboadvisor.domain.community.service.CommentService;
-import org.ai.roboadvisor.domain.community.swagger_annotation.comment.delete.*;
-import org.ai.roboadvisor.domain.community.swagger_annotation.comment.save.*;
-import org.ai.roboadvisor.domain.community.swagger_annotation.comment.update.*;
+import org.ai.roboadvisor.domain.community.swagger_annotation.comment.delete.delete_BAD_REQUEST;
+import org.ai.roboadvisor.domain.community.swagger_annotation.comment.delete.delete_OK;
+import org.ai.roboadvisor.domain.community.swagger_annotation.comment.delete.delete_UNAUTHORIZED;
+import org.ai.roboadvisor.domain.community.swagger_annotation.comment.save.save_BAD_REQUEST;
+import org.ai.roboadvisor.domain.community.swagger_annotation.comment.save.save_CREATED;
+import org.ai.roboadvisor.domain.community.swagger_annotation.comment.save.save_UNAUTHORIZED;
+import org.ai.roboadvisor.domain.community.swagger_annotation.comment.update.update_BAD_REQUEST;
+import org.ai.roboadvisor.domain.community.swagger_annotation.comment.update.update_OK;
+import org.ai.roboadvisor.domain.community.swagger_annotation.comment.update.update_UNAUTHORIZED;
 import org.ai.roboadvisor.global.common.dto.SuccessApiResponse;
 import org.ai.roboadvisor.global.exception.SuccessCode;
 import org.ai.roboadvisor.global.swagger_annotation.ApiResponse_Internal_Server_Error;
@@ -33,7 +38,7 @@ public class CommentController {
     @Operation(summary = "댓글 및 대댓글 작성", description = """
             댓글 및 대댓글 작성 API
                         
-            아래 Schemas 중 RequestBody로 'CommentRequest' 를 사용한다.
+            Swagger 문서 하단의 Schemas 중 RequestBody로 'CommentRequest' 를 사용한다.
             """)
     @save_CREATED
     @save_BAD_REQUEST
@@ -47,14 +52,18 @@ public class CommentController {
                         commentService.save(postId, commentRequest)));
     }
 
-    @Operation(summary = "댓글 수정", description = "댓글 수정 API")
+    @Operation(summary = "댓글 및 대댓글 수정", description = """
+            댓글 및 대댓글 수정 API
+                        
+            Swagger 문서 하단의 Schemas 중 RequestBody로 'CommentUpdateRequest' 를 사용한다.
+            """)
     @update_OK
     @update_BAD_REQUEST
     @update_UNAUTHORIZED
     @ApiResponse_Internal_Server_Error
     @PatchMapping("/{postId}")
-    public ResponseEntity<SuccessApiResponse<CommentUpdateResponse>> update(@PathVariable("postId") Long postId,
-                                                                            @RequestBody CommentUpdateRequest commentUpdateRequest) {
+    public ResponseEntity<SuccessApiResponse<CommentResponse>> update(@PathVariable("postId") Long postId,
+                                                                      @RequestBody CommentUpdateRequest commentUpdateRequest) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(SuccessApiResponse.success(SuccessCode.COMMENT_UPDATE_SUCCESS,
                         commentService.update(postId, commentUpdateRequest)));
