@@ -21,7 +21,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -365,6 +367,45 @@ class PostServiceTest {
 
         // 조회수 +1 증가
         assertThat(response.getViewCount()).isEqualTo(viewCount + 1);
+    }
+
+    @Test
+    @DisplayName("case 3-2: update 시에 BaseEntity의 update 시간이 변경되는 지 검증. 정상 로직, 댓글은 없는 경우")
+    void update_check_time_updated() throws InterruptedException {
+        // given
+        Tendency lion = Tendency.LION;
+        String nickname = "test_nickname";
+        String content = "test_content";
+        long viewCount = 0L;
+
+        Post post = Post.builder()
+                .nickname(nickname)
+                .tendency(lion)
+                .content(content)
+                .viewCount(viewCount)
+                .deleteStatus(DeleteStatus.F)
+                .build();
+        postRepository.save(post);
+
+        // get saved entity
+        Optional<Post> savedPost = postRepository.findPostById(1L);
+        LocalDateTime updatedTime = savedPost.get().getModifiedDateTime();
+
+        Thread.sleep(1000L);
+
+        // update Request
+        String updateContent = "update Content!";
+        PostRequest updRequest = new PostRequest(lion, nickname, updateContent);
+
+        // when
+        long postId = 1L;
+        PostResponse response = postService.update(postId, updRequest);
+
+        // then
+        Optional<Post> savedPost2 = postRepository.findPostById(1L);
+        LocalDateTime updatedTime2 = savedPost2.get().getModifiedDateTime();
+
+        assertThat(updatedTime).isBeforeOrEqualTo(updatedTime2);
     }
 
     @Test
