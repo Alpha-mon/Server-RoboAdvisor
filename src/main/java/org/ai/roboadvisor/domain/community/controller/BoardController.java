@@ -34,7 +34,11 @@ public class BoardController {
 
     private final int PAGE_SIZE = 10;
 
-    @Operation(summary = "게시글 전체 조회", description = "게시글 전체 불러오기 API")
+    @Operation(summary = "게시글 전체 조회", description = """
+            투자 성향별로 게시글 목록을 10개씩 불러오는 API
+             
+            요청 예시는 다음과 같다: [api url]/api/community/board?tendency=LION&page=0
+            """)
     @getAllPostsByType_OK
     @getAllPostsByType_BAD_REQUEST
     @ApiResponse_Internal_Server_Error
@@ -44,7 +48,7 @@ public class BoardController {
             direction = Sort.Direction.ASC) Pageable pageable) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(SuccessApiResponse.success(SuccessCode.BOARD_ALL_VIEW_SUCCESS,
-                        boardService.getAllPostsByType(tendency, pageable)));
+                        boardService.getAllPostsByTendency(tendency, pageable)));
     }
 
 }
