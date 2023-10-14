@@ -66,9 +66,13 @@ public class CommentService {
         // validate if user has authority
         validateUserHasAuthority(commentDeleteRequest.getNickname(), existingComment);
 
-        // manually delete a comment
-        deleteComment(existingComment);
-
+        if (existingComment.getParent() != null) {
+            // 자식 댓글인 경우, 자식 댓글만 지운다.
+            deleteComment(existingComment);
+        } else {
+            // 부모 댓글인 경우, 부모와 자식 댓글 모두 지운다.
+            commentRepository.deleteCommentAndChildren(existingComment);
+        }
         return CommentDeleteResponse.fromCommentEntity(existingComment);
     }
 

@@ -17,4 +17,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Query("UPDATE Comment c SET c.deleteStatus = :deleteStatus WHERE c.post= :post")
     void markCommentsAsDeleted(@Param("post") Post post, @Param("deleteStatus") DeleteStatus deleteStatus);
 
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE Comment c SET c.deleteStatus = 'T' WHERE c = :parentComment OR c.parent = :parentComment")
+    void deleteCommentAndChildren(@Param("parentComment") Comment parentComment);
 }

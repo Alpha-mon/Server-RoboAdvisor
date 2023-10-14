@@ -52,11 +52,12 @@ public class Comment extends CommentBaseTimeEntity {
 
     @Builder
     private Comment(Long id, String nickname, String content,
-                    DeleteStatus deleteStatus, Post post) {
+                    DeleteStatus deleteStatus, Comment parent, Post post) {
         this.id = id;
         this.nickname = nickname;
         this.content = content;
         this.deleteStatus = deleteStatus;
+        this.parent = parent;
         this.post = post;
     }
 

@@ -69,7 +69,11 @@ public class CommentController {
                         commentService.update(postId, commentUpdateRequest)));
     }
 
-    @Operation(summary = "댓글 삭제", description = "댓글 삭제 API")
+    @Operation(summary = "댓글 및 대댓글 삭제", description = """
+            댓글 및 대댓글 삭제 API
+                        
+            Swagger 문서 하단의 Schemas 중 RequestBody로 'CommentDeleteRequest' 를 사용한다.
+            """)
     @delete_OK
     @delete_BAD_REQUEST
     @delete_UNAUTHORIZED
