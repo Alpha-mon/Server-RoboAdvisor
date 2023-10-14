@@ -12,23 +12,21 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @ApiResponse(responseCode = "200", description = """
-        댓글이 정상적으로 삭제된 경우: data 내에 응답 객체는 '댓글 작성', '댓글 수정' 과 동일하다.
+        댓글이 정상적으로 삭제된 경우: 
+                
+        "data" 값으로 삭제 요청된 댓글의 id값을 리턴한다.
         """,
         content = @Content(schema = @Schema(implementation = SuccessApiResponse.class),
                 examples = @ExampleObject(name = "example",
                         description = "정상 응답 예시",
                         value = """
-                                  {
-                                      "code": 200,
-                                      "message": "댓글 삭제가 정상적으로 처리되었습니다",
-                                      "data": {
-                                          "id": 1,
-                                          "postId": 1,
-                                          "nickname": "testUser",
-                                          "content": "안녕하세요 댓글 1",
-                                          "createdDateTime": "2023-09-25 04:28:41"
-                                      }
-                                  }
+                                 {
+                                       "code": 200,
+                                       "message": "댓글 삭제가 정상적으로 처리되었습니다",
+                                       "data": {
+                                           "id": 3
+                                       }
+                                   }
                                 """
                 )))
 public @interface delete_OK {

@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RequiredArgsConstructor
-@Tag(name = "community] post", description = "게시글 CRUD API")
+@Tag(name = "community] post API", description = "게시글 CRUD API")
 @RestController
 @RequestMapping("/api/community/post")
 public class PostController {
@@ -60,7 +60,7 @@ public class PostController {
     @update_BAD_REQUEST
     @update_UNAUTHORIZED
     @ApiResponse_Internal_Server_Error
-    @PutMapping("/{postId}")
+    @PatchMapping("/{postId}")
     public ResponseEntity<SuccessApiResponse<PostResponse>> update(@PathVariable("postId") Long postId, @RequestBody PostRequest postRequest) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(SuccessApiResponse.success(SuccessCode.POST_UPDATE_SUCCESS,

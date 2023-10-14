@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.ai.roboadvisor.domain.community.dto.request.CommentDeleteRequest;
 import org.ai.roboadvisor.domain.community.dto.request.CommentRequest;
 import org.ai.roboadvisor.domain.community.dto.request.CommentUpdateRequest;
+import org.ai.roboadvisor.domain.community.dto.response.CommentDeleteResponse;
 import org.ai.roboadvisor.domain.community.dto.response.CommentResponse;
 import org.ai.roboadvisor.domain.community.service.CommentService;
 import org.ai.roboadvisor.domain.community.swagger_annotation.comment.delete.*;
@@ -21,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RequiredArgsConstructor
-@Tag(name = "community] comment", description = "댓글 작성, 수정, 삭제 API")
+@Tag(name = "community] comment API", description = "댓글 작성, 수정, 삭제 API")
 @RestController
 @RequestMapping("/api/community/comment")
 public class CommentController {
@@ -46,7 +47,7 @@ public class CommentController {
     @update_BAD_REQUEST
     @update_UNAUTHORIZED
     @ApiResponse_Internal_Server_Error
-    @PutMapping("/{postId}")
+    @PatchMapping("/{postId}")
     public ResponseEntity<SuccessApiResponse<CommentResponse>> update(@PathVariable("postId") Long postId,
                                                                       @RequestBody CommentUpdateRequest commentUpdateRequest) {
         return ResponseEntity.status(HttpStatus.OK)
@@ -60,8 +61,8 @@ public class CommentController {
     @delete_UNAUTHORIZED
     @ApiResponse_Internal_Server_Error
     @DeleteMapping("/{postId}")
-    public ResponseEntity<SuccessApiResponse<CommentResponse>> delete(@PathVariable("postId") Long postId,
-                                                                      @RequestBody CommentDeleteRequest commentDeleteRequest) {
+    public ResponseEntity<SuccessApiResponse<CommentDeleteResponse>> delete(@PathVariable("postId") Long postId,
+                                                                            @RequestBody CommentDeleteRequest commentDeleteRequest) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(SuccessApiResponse.success(SuccessCode.COMMENT_DELETE_SUCCESS,
                         commentService.delete(postId, commentDeleteRequest)));
