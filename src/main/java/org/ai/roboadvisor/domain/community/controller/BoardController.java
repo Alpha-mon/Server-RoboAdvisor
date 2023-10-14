@@ -25,7 +25,7 @@ import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
-@Tag(name = "community] board", description = "게시글 전체 불러오기 API")
+@Tag(name = "community] board API", description = "게시글 목록 불러오기 API")
 @RestController
 @RequestMapping("/api/community/board")
 public class BoardController {

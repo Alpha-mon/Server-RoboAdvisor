@@ -18,7 +18,7 @@ import java.lang.annotation.*;
                         value = """
                                    {
                                        "code": 401,
-                                       "message": "게시글 수정 혹은 삭제 권한이 존재하지 않습니다",
+                                       "message": "게시글과 댓글의 투자 성향이 달라서 댓글을 작성할 수 없습니다",
                                        "data": null
                                    }
                                 """

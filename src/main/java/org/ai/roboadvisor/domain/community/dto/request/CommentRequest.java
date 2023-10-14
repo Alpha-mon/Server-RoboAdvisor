@@ -23,7 +23,7 @@ public class CommentRequest {
     @NotBlank
     private String nickname;
 
-    @Schema(description = "댓글 내용", example = "안녕하세요. 댓글 작성 1입니다. ")
+    @Schema(description = "댓글 내용", example = "안녕하세요. 댓글 작성 1입니다.")
     @NotBlank
     private String content;
 

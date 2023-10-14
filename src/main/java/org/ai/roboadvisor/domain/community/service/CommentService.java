@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.ai.roboadvisor.domain.community.dto.request.CommentDeleteRequest;
 import org.ai.roboadvisor.domain.community.dto.request.CommentRequest;
 import org.ai.roboadvisor.domain.community.dto.request.CommentUpdateRequest;
+import org.ai.roboadvisor.domain.community.dto.response.CommentDeleteResponse;
 import org.ai.roboadvisor.domain.community.dto.response.CommentResponse;
 import org.ai.roboadvisor.domain.community.entity.Comment;
 import org.ai.roboadvisor.domain.community.entity.DeleteStatus;
@@ -30,6 +31,7 @@ public class CommentService {
         Tendency commentTendency = commentRequest.getTendency();
         checkTendencyIsValid(commentTendency);
 
+        // 게시글의 tendency와 댓글의 tendency가 일치하는지 검증
         Post existPost = postRepository.findPostById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_ID_NOT_EXISTS));
         checkCommentIsValid(commentTendency, existPost);
@@ -55,7 +57,7 @@ public class CommentService {
     }
 
     @Transactional
-    public CommentResponse delete(Long postId, CommentDeleteRequest commentDeleteRequest) {
+    public CommentDeleteResponse delete(Long postId, CommentDeleteRequest commentDeleteRequest) {
         Comment existingComment = findExistingCommentById(postId, commentDeleteRequest.getCommentId());
 
         // validate if user has authority
@@ -64,7 +66,7 @@ public class CommentService {
         // manually delete a comment
         deleteComment(existingComment);
 
-        return CommentResponse.fromCommentEntity(existingComment);
+        return CommentDeleteResponse.fromCommentEntity(existingComment);
     }
 
     private void checkTendencyIsValid(Tendency tendency) {
