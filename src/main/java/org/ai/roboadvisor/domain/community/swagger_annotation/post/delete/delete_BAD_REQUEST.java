@@ -1,4 +1,4 @@
-package org.ai.roboadvisor.domain.community.swagger_annotation.post.update;
+package org.ai.roboadvisor.domain.community.swagger_annotation.post.delete;
 
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -26,6 +26,6 @@ import java.lang.annotation.*;
                 )
 
         ))
-public @interface update_BAD_REQUEST {
+public @interface delete_BAD_REQUEST {
 }
 
