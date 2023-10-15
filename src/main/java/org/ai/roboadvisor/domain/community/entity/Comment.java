@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)  // 인자 없는 기본 생성자 필요
@@ -38,16 +40,24 @@ public class Comment extends CommentBaseTimeEntity {
     private DeleteStatus deleteStatus;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cmt_parent_id")
+    private Comment parent;
+
+    @OneToMany(mappedBy = "parent")
+    private List<Comment> children = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")
     private Post post;
 
     @Builder
     private Comment(Long id, String nickname, String content,
-                    DeleteStatus deleteStatus, Post post) {
+                    DeleteStatus deleteStatus, Comment parent, Post post) {
         this.id = id;
         this.nickname = nickname;
         this.content = content;
         this.deleteStatus = deleteStatus;
+        this.parent = parent;
         this.post = post;
     }
 
@@ -57,5 +67,9 @@ public class Comment extends CommentBaseTimeEntity {
 
     public void setDeleteStatus(DeleteStatus deleteStatus) {
         this.deleteStatus = deleteStatus;
+    }
+
+    public void setParent(Comment parent) {
+        this.parent = parent;
     }
 }

@@ -14,6 +14,7 @@ import javax.validation.constraints.NotBlank;
 @AllArgsConstructor
 public class PostRequest {
 
+    // TODO:: 이 부분 제거
     @Schema(description = "사용자의 투자 성향", example = "SHEEP")
     @NotBlank
     private Tendency tendency;

@@ -16,7 +16,7 @@ import java.lang.annotation.*;
                 
         Pagination을 사용하여, page=0, 1, 2, ... 숫자를 증가시킴에 따라 연속해서 게시글을 가져올 수 있다.
                 
-        page 0, 1, 2, ... 마다 각각 10개의 게시글을 가져오도록 구현되어 있으며, 이는 수정이 가능하다. 
+        page 0, 1, 2, ... 마다 각각 '10개'의 게시글을 가져오도록 구현되어 있으며, 가져오는 게시글 개수는 변경이 가능하다.
                 
         요청 예시는 다음과 같다: [api url]/api/community/board?tendency=LION&page=0
                 
@@ -34,83 +34,102 @@ import java.lang.annotation.*;
                         description = "정상 응답",
                         value = """
                                    {
-                                       "code": 200,
-                                       "message": "게시글을 불러오는데 성공하셨습니다",
-                                       "data": [
-                                           {
-                                               "id": 1,
-                                               "tendency": "LION",
-                                               "nickname": "testUser",
-                                               "content": "안녕하세요3333",
-                                               "createdDateTime": "2023-09-21 01:06:20",
-                                               "viewCount": 9,
-                                               "commentCount": 2
-                                           },
-                                           {
-                                               "id": 3,
-                                               "tendency": "LION",
-                                               "nickname": "testUser",
-                                               "content": "안녕하세요",
-                                               "createdDateTime": "2023-09-23 14:44:14",
-                                               "viewCount": 0,
-                                               "commentCount": 0
-                                           },
-                                           {
-                                               "id": 4,
-                                               "tendency": "LION",
-                                               "nickname": "testUser",
-                                               "content": "안녕하세요",
-                                               "createdDateTime": "2023-09-23 14:44:15",
-                                               "viewCount": 0,
-                                               "commentCount": 0
-                                           },
-                                           {
-                                               "id": 5,
-                                               "tendency": "LION",
-                                               "nickname": "testUser",
-                                               "content": "안녕하세요",
-                                               "createdDateTime": "2023-09-23 14:44:15",
-                                               "viewCount": 0,
-                                               "commentCount": 0
-                                           },
-                                           {
-                                               "id": 6,
-                                               "tendency": "LION",
-                                               "nickname": "testUser",
-                                               "content": "안녕하세요",
-                                               "createdDateTime": "2023-09-23 14:44:16",
-                                               "viewCount": 0,
-                                               "commentCount": 0
-                                           },
-                                           {
-                                               "id": 7,
-                                               "tendency": "LION",
-                                               "nickname": "testUser",
-                                               "content": "안녕하세요",
-                                               "createdDateTime": "2023-09-23 14:44:16",
-                                               "viewCount": 0,
-                                               "commentCount": 0
-                                           },
-                                           {
-                                               "id": 8,
-                                               "tendency": "LION",
-                                               "nickname": "testUser",
-                                               "content": "안녕하세요",
-                                               "createdDateTime": "2023-09-23 14:44:17",
-                                               "viewCount": 0,
-                                               "commentCount": 0
-                                           },
-                                           {
-                                               "id": 9,
-                                               "tendency": "LION",
-                                               "nickname": "testUser",
-                                               "content": "안녕하세요",
-                                               "createdDateTime": "2023-09-23 14:44:18",
-                                               "viewCount": 0,
-                                               "commentCount": 0
-                                           }
-                                       ]
-                                   }
+                                       {
+                                           "code": 200,
+                                           "message": "게시글을 불러오는데 성공하셨습니다",
+                                           "data": [
+                                               {
+                                                   "id": 1,
+                                                   "tendency": "LION",
+                                                   "nickname": "testUser",
+                                                   "content": "안녕하세요1",
+                                                   "createdDateTime": "2023-09-21 01:06:20",
+                                                   "viewCount": 47,
+                                                   "commentCount": 3
+                                               },
+                                               {
+                                                   "id": 2,
+                                                   "tendency": "LION",
+                                                   "nickname": "testUser",
+                                                   "content": "안녕하세요2",
+                                                   "createdDateTime": "2023-09-23 14:44:14",
+                                                   "viewCount": 0,
+                                                   "commentCount": 2
+                                               },
+                                               {
+                                                   "id": 3,
+                                                   "tendency": "LION",
+                                                   "nickname": "testUser",
+                                                   "content": "안녕하세요3",
+                                                   "createdDateTime": "2023-09-23 14:44:14",
+                                                   "viewCount": 5,
+                                                   "commentCount": 0
+                                               },
+                                               {
+                                                   "id": 4,
+                                                   "tendency": "LION",
+                                                   "nickname": "testUser",
+                                                   "content": "안녕하세요4",
+                                                   "createdDateTime": "2023-09-23 14:44:15",
+                                                   "viewCount": 4,
+                                                   "commentCount": 0
+                                               },
+                                               {
+                                                   "id": 5,
+                                                   "tendency": "LION",
+                                                   "nickname": "testUser",
+                                                   "content": "안녕하세요5",
+                                                   "createdDateTime": "2023-09-23 14:44:15",
+                                                   "viewCount": 0,
+                                                   "commentCount": 0
+                                               },
+                                               {
+                                                   "id": 6,
+                                                   "tendency": "LION",
+                                                   "nickname": "testUser",
+                                                   "content": "안녕하세요6",
+                                                   "createdDateTime": "2023-09-23 14:44:16",
+                                                   "viewCount": 0,
+                                                   "commentCount": 0
+                                               },
+                                               {
+                                                   "id": 7,
+                                                   "tendency": "LION",
+                                                   "nickname": "testUser",
+                                                   "content": "안녕하세요7",
+                                                   "createdDateTime": "2023-09-23 14:44:16",
+                                                   "viewCount": 0,
+                                                   "commentCount": 0
+                                               },
+                                               {
+                                                   "id": 8,
+                                                   "tendency": "LION",
+                                                   "nickname": "testUser",
+                                                   "content": "안녕하세요8",
+                                                   "createdDateTime": "2023-09-23 14:44:17",
+                                                   "viewCount": 0,
+                                                   "commentCount": 0
+                                               },
+                                               {
+                                                   "id": 9,
+                                                   "tendency": "LION",
+                                                   "nickname": "testUser",
+                                                   "content": "안녕하세요9",
+                                                   "createdDateTime": "2023-09-23 14:44:18",
+                                                   "viewCount": 0,
+                                                   "commentCount": 0
+                                               },
+                                               {
+                                                   "id": 10,
+                                                   "tendency": "LION",
+                                                   "nickname": "testUser",
+                                                   "content": "안녕하세요10",
+                                                   "createdDateTime": "2023-09-25 04:47:33",
+                                                   "viewCount": 0,
+                                                   "commentCount": 0
+                                               }
+                                           ]
+                                       }
                                 """
                 )
         ))

@@ -11,6 +11,8 @@ import org.ai.roboadvisor.domain.community.entity.Post;
 import org.ai.roboadvisor.domain.community.repository.CommentRepository;
 import org.ai.roboadvisor.domain.community.repository.PostRepository;
 import org.ai.roboadvisor.domain.tendency.entity.Tendency;
+import org.ai.roboadvisor.domain.user.entity.User;
+import org.ai.roboadvisor.domain.user.repository.UserRepository;
 import org.ai.roboadvisor.global.exception.CustomException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +24,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -37,6 +40,9 @@ class CommentServiceTest {
     private CommentService commentService;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private PostRepository postRepository;
 
     @Autowired
@@ -47,10 +53,12 @@ class CommentServiceTest {
     private final Tendency POST_TENDENCY = Tendency.LION;
     private final String POST_CONTENT = "post_content";
 
-    private final Long COMMENT_ID = 1L;
+    private final Long PARENT_COMMENT_ID = 1L;
     private final String COMMENT_NICKNAME = "comment_user";
     private final Tendency COMMENT_TENDENCY = Tendency.LION;
     private final String COMMENT_CONTENT = "comment_content";
+    private final Long CHILD_COMMENT_ID = 2L;
+    private final String USER_NICKNAME = "comment_user";
 
     @BeforeEach
     void setUp() {
@@ -64,53 +72,124 @@ class CommentServiceTest {
                 .build();
         postRepository.save(post);
 
-        // 댓글 하나도 미리 저장
-        Comment comment = Comment.builder()
+        // 부모 댓글 하나도 미리 저장
+        Comment parentComment = Comment.builder()
                 .nickname(COMMENT_NICKNAME)
                 .content(COMMENT_CONTENT)
                 .deleteStatus(DeleteStatus.F)
                 .post(post)
                 .build();
-        post.getComments().add(comment);
-        commentRepository.save(comment);
+        post.getComments().add(parentComment);
+        commentRepository.save(parentComment);
+
+        // 자식 댓글도 미리 저장
+        Comment childComment = Comment.builder()
+                .nickname(COMMENT_NICKNAME)
+                .content(COMMENT_CONTENT)
+                .deleteStatus(DeleteStatus.F)
+                .parent(parentComment)
+                .post(post)
+                .build();
+        post.getComments().add(childComment);
+        commentRepository.save(childComment);
+
+        // 댓글을 수정할 권한이 있는 사용자 미리 저장
+        User user = User.builder()
+                .email("test@t.com")
+                .nickname(USER_NICKNAME)    // COMMENT_NICKNAME 과 동일
+                .tendency(COMMENT_TENDENCY)
+                .gender("male")
+                .password("3fasfzxvae")
+                .birth(LocalDate.now())
+                .career(null)
+                .build();
+        userRepository.save(user);
     }
 
     @Test
-    @DisplayName("case 1: Tendency(투자 성향)이 적절하지 않은 타입이 온 경우, 예외처리")
-    void save_with_TendencyIsNotValid() {
-        Tendency notExists = Tendency.TYPE_NOT_EXISTS;
-        CommentRequest request = new CommentRequest(
-                notExists, "test_nickname", "test_content");
+    @DisplayName("case 1: 사용자의 닉네임이 DB에 존재하지 않는 경우, 예외처리")
+    void save_when_user_not_existed() {
+        String nickname = "not_in_db";
+        CommentRequest request = new CommentRequest(null, nickname, "test_content");
 
         Assertions.assertThrows(CustomException.class, () ->
                 commentService.save(POST_ID, request));
     }
 
     @Test
-    @DisplayName("case 2: 게시글과 댓글의 Tendency(투자 성향)이 일치하지 않는 경우, 예외처리")
-    void save_with_Tendency_is_not_same_between_post_and_comment() {
-        Tendency different = Tendency.SHEEP;    // @BeforeEach에서 저장된 post는 LION
-        CommentRequest request = new CommentRequest(
-                different, "test_nickname", "test_content");
+    @DisplayName("case 1-1: 게시글이 DB에 존재하지 않는 경우, 예외처리")
+    void save_when_post_not_existed() {
+        CommentRequest request = new CommentRequest(null, USER_NICKNAME, "test_content");
+
+        Long idNotInDB = 1000L;
+        Assertions.assertThrows(CustomException.class, () ->
+                commentService.save(idNotInDB, request));
+    }
+
+    @Test
+    @DisplayName("case 2: 게시글과 사용자의 Tendency(투자 성향)이 다른 경우")
+    void save_with_Tendency_is_not_same_between_post_and_user() {
+        String testNickname = "nick33";
+        // 사용자 생성
+        User user = User.builder()
+                .email("test2222@t.com")
+                .nickname(testNickname)    // COMMENT_NICKNAME 과 동일
+                .tendency(Tendency.MONKEY)
+                .gender("male")
+                .password("asdfasf")
+                .birth(LocalDate.now())
+                .career(null)
+                .build();
+        userRepository.save(user);
+
+        CommentRequest request = new CommentRequest(null, testNickname, "test_content");
 
         Assertions.assertThrows(CustomException.class, () ->
                 commentService.save(POST_ID, request));
     }
 
     @Test
-    @DisplayName("case 3: 정상 로직")
-    void save() {
+    @DisplayName("case 3: 부모 댓글이 존재하지 않는 경우, 예외처리")
+    void save_with_parentComment_is_not_existed() {
+        Long commentIdNotInDb = 1000L;
+        CommentRequest request = new CommentRequest(commentIdNotInDb, USER_NICKNAME, "test_content");
+
+        Assertions.assertThrows(CustomException.class, () ->
+                commentService.save(POST_ID, request));
+    }
+
+    @Test
+    @DisplayName("case 4: 정상 로직-댓글 작성")
+    void save_parentComment() {
         // given
-        Tendency tendency = POST_TENDENCY;
-        String nickname = "새로운 댓글 작성자";
+        Long parentCommentId = null;
         String content = "댓글 작성 테스트";
-        CommentRequest request = new CommentRequest(tendency, nickname, content);
+        CommentRequest request = new CommentRequest(parentCommentId, USER_NICKNAME, content);
 
         // when
         CommentResponse response = commentService.save(POST_ID, request);
 
         // then
-        assertThat(response.getNickname()).isEqualTo(nickname);
+        assertThat(response.getParentCommentId()).isNull();
+        assertThat(response.getNickname()).isEqualTo(USER_NICKNAME);
+        assertThat(response.getPostId()).isEqualTo(POST_ID);
+        assertThat(response.getContent()).isEqualTo(content);
+    }
+
+    @Test
+    @DisplayName("case 4-1: 정상 로직-대댓글 작성")
+    void save_childComment() {
+        // given
+        Long parentCommentId = PARENT_COMMENT_ID;
+        String content = "댓글 작성 테스트";
+        CommentRequest request = new CommentRequest(parentCommentId, USER_NICKNAME, content);
+
+        // when
+        CommentResponse response = commentService.save(POST_ID, request);
+
+        // then
+        assertThat(response.getParentCommentId()).isEqualTo(parentCommentId);
+        assertThat(response.getNickname()).isEqualTo(USER_NICKNAME);
         assertThat(response.getPostId()).isEqualTo(POST_ID);
         assertThat(response.getContent()).isEqualTo(content);
     }
@@ -119,7 +198,7 @@ class CommentServiceTest {
     @DisplayName("case 1: 게시글 id가 존재하지 않는 경우, 예외처리")
     void update_when_post_id_not_exists() {
         String updateContent = "Update the content";
-        CommentUpdateRequest request = new CommentUpdateRequest(COMMENT_ID, COMMENT_NICKNAME,
+        CommentUpdateRequest request = new CommentUpdateRequest(PARENT_COMMENT_ID, COMMENT_NICKNAME,
                 updateContent);
         Long postIdNotExists = 1000L;
 
@@ -158,7 +237,10 @@ class CommentServiceTest {
         post.getComments().add(comment);
         commentRepository.save(comment);
 
-        Long commentId = 2L; // 이 부분이 변경됨.
+        // 이미 @BeforeEach에서 댓글 2개를 저장했기 때문에, 바로 위에서 저장한 Comment의 값은 3L이지만,
+        // 추후 코드가 또 변경될 수 있으니 아래와 같이 size()를 사용해서 반환했다.
+        Long commentId = (long) commentRepository.findAll().size();
+
         CommentUpdateRequest request2 = new CommentUpdateRequest(commentId, COMMENT_NICKNAME,
                 updateContent);
         Assertions.assertThrows(CustomException.class, () ->
@@ -169,7 +251,7 @@ class CommentServiceTest {
     @DisplayName("case 3: 댓글 수정 권한이 없는 경우, 예외처리")
     void update_authorization_is_not_valid() {
         String nickname = "not_authorized";
-        CommentUpdateRequest request = new CommentUpdateRequest(COMMENT_ID, nickname,
+        CommentUpdateRequest request = new CommentUpdateRequest(PARENT_COMMENT_ID, nickname,
                 COMMENT_CONTENT);
 
         Assertions.assertThrows(CustomException.class, () ->
@@ -181,14 +263,14 @@ class CommentServiceTest {
     void update() {
         // given
         String updateContent = "Update the content";
-        CommentUpdateRequest request = new CommentUpdateRequest(COMMENT_ID, COMMENT_NICKNAME,
+        CommentUpdateRequest request = new CommentUpdateRequest(PARENT_COMMENT_ID, COMMENT_NICKNAME,
                 updateContent);
 
         // when
         CommentResponse response = commentService.update(POST_ID, request);
 
         // then
-        assertThat(response.getId()).isEqualTo(COMMENT_ID);
+        assertThat(response.getCommentId()).isEqualTo(PARENT_COMMENT_ID);
         assertThat(response.getPostId()).isEqualTo(POST_ID);
         assertThat(response.getNickname()).isEqualTo(COMMENT_NICKNAME);
         assertThat(response.getContent()).isEqualTo(updateContent); // here is updated
@@ -197,7 +279,7 @@ class CommentServiceTest {
     @Test
     @DisplayName("case 1: 게시글 id가 존재하지 않는 경우, 예외처리")
     void delete_when_post_id_not_exists() {
-        CommentDeleteRequest request = new CommentDeleteRequest(COMMENT_ID, COMMENT_NICKNAME);
+        CommentDeleteRequest request = new CommentDeleteRequest(PARENT_COMMENT_ID, COMMENT_NICKNAME);
         Long postIdNotExists = 1000L;
 
         Assertions.assertThrows(CustomException.class, () ->
@@ -232,7 +314,10 @@ class CommentServiceTest {
         post.getComments().add(comment);
         commentRepository.save(comment);
 
-        Long commentId = 2L; // 이 부분이 변경됨.
+        // 이미 @BeforeEach에서 댓글 2개를 저장했기 때문에, 바로 위에서 저장한 Comment의 값은 3L이지만,
+        // 추후 코드가 또 변경될 수 있으니 아래와 같이 size()를 사용해서 반환했다.
+        Long commentId = (long) commentRepository.findAll().size();
+
         CommentDeleteRequest request2 = new CommentDeleteRequest(commentId, COMMENT_NICKNAME);
         Assertions.assertThrows(CustomException.class, () ->
                 commentService.delete(POST_ID, request2));
@@ -242,31 +327,65 @@ class CommentServiceTest {
     @DisplayName("case 3: 댓글 삭제 권한이 없는 경우, 예외처리")
     void delete_authorization_is_not_valid() {
         String nickname = "not_authorized";
-        CommentDeleteRequest request = new CommentDeleteRequest(COMMENT_ID, nickname);
+        CommentDeleteRequest request = new CommentDeleteRequest(PARENT_COMMENT_ID, nickname);
 
         Assertions.assertThrows(CustomException.class, () ->
                 commentService.delete(POST_ID, request));
     }
 
     @Test
-    @DisplayName("case 4: 정상 삭제 로직")
-    void delete() {
+    @DisplayName("case 4: 정상 로직- 자식 댓글 삭제")
+    void delete_childComment() {
         // given
-        CommentDeleteRequest request = new CommentDeleteRequest(COMMENT_ID, COMMENT_NICKNAME);
+        Long childCommentId = CHILD_COMMENT_ID;
+        CommentDeleteRequest request = new CommentDeleteRequest(childCommentId, COMMENT_NICKNAME);
 
         // when
         CommentDeleteResponse response = commentService.delete(POST_ID, request);
 
         // then
-        assertThat(response.getId()).isEqualTo(COMMENT_ID);
+        assertThat(response.getId()).isEqualTo(childCommentId);
 
         // DeleteStatus = 'T' 로 변경되었는지 검증
-        Optional<Post> existingPostOptional = postRepository.findPostById(POST_ID);
-        Optional<Comment> existingCommentOptional = commentRepository.findCommentByIdAndPost(COMMENT_ID, existingPostOptional.get());
-        Comment existingComment = existingCommentOptional.get();
+        Optional<Comment> existingCommentOptional = commentRepository.findById(childCommentId);
+        Comment childComment = existingCommentOptional.get();
 
-        assertThat(existingComment.getId()).isEqualTo(COMMENT_ID);
-        assertThat(existingComment.getPost().getId()).isEqualTo(POST_ID);
-        assertThat(existingComment.getDeleteStatus()).isEqualTo(DeleteStatus.T);
+        assertThat(childComment.getId()).isEqualTo(childCommentId);
+        assertThat(childComment.getParent().getId()).isEqualTo(PARENT_COMMENT_ID);
+        assertThat(childComment.getPost().getId()).isEqualTo(POST_ID);
+        assertThat(childComment.getDeleteStatus()).isEqualTo(DeleteStatus.T);
     }
+
+    @Test
+    @DisplayName("case 4-1: 정상 로직- 부모 댓글 삭제")
+    void delete_parentComment_with_no_child() {
+        // given
+        Long parentCommentId = PARENT_COMMENT_ID;
+        CommentDeleteRequest request = new CommentDeleteRequest(parentCommentId, COMMENT_NICKNAME);
+
+        // when
+        CommentDeleteResponse response = commentService.delete(POST_ID, request);
+
+        // then
+        assertThat(response.getId()).isEqualTo(parentCommentId);
+
+        // 부모 댓글이 DeleteStatus = 'T' 로 변경되었는지 검증
+        Optional<Comment> existingCommentOptional = commentRepository.findById(parentCommentId);
+        Comment parentComment = existingCommentOptional.get();
+
+        assertThat(parentComment.getId()).isEqualTo(parentCommentId);
+        assertThat(parentComment.getParent()).isNull();
+        assertThat(parentComment.getPost().getId()).isEqualTo(POST_ID);
+        assertThat(parentComment.getDeleteStatus()).isEqualTo(DeleteStatus.T);
+
+        // 자식 댓글이 DeleteStatus = 'T' 로 변경되었는지 검증
+        Optional<Comment> existingCommentOptional2 = commentRepository.findById(CHILD_COMMENT_ID);
+        Comment childComment = existingCommentOptional2.get();
+
+        assertThat(childComment.getId()).isEqualTo(CHILD_COMMENT_ID);
+        assertThat(childComment.getParent().getId()).isEqualTo(parentCommentId);
+        assertThat(childComment.getPost().getId()).isEqualTo(POST_ID);
+        assertThat(childComment.getDeleteStatus()).isEqualTo(DeleteStatus.T);
+    }
+
 }

@@ -3,7 +3,6 @@ package org.ai.roboadvisor.domain.community.dto.response;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.ai.roboadvisor.domain.community.entity.Post;
 import org.ai.roboadvisor.domain.tendency.entity.Tendency;
 
 import java.time.LocalDateTime;
@@ -21,10 +20,5 @@ public class BoardResponse {
     private LocalDateTime createdDateTime;
 
     private Long viewCount;
-    private int commentCount;   // number of comments in a post
-
-    public static BoardResponse fromPostAndCommentCount(Post post) {
-        return new BoardResponse(post.getId(), post.getTendency(), post.getNickname(),
-                post.getContent(), post.getCreatedDateTime(), post.getViewCount(), post.getComments().size());
-    }
+    private Long commentCount;   // number of comments in a post which delete_status != 'T'
 }

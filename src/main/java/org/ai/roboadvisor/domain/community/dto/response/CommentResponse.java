@@ -11,21 +11,25 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class CommentResponse {
 
-    private Long id;
-    private Long postId;    // 게시글 번호
+    private Long commentId;         // 댓글 id
+    private Long parentCommentId;   // 부모 댓글 id
+    private Long postId;            // 게시글 id
     private String nickname;
     private String content;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private LocalDateTime createdDateTime;
 
-    public static CommentResponse of(Long id, Long postId, String nickname, String content, LocalDateTime createdDateTime) {
-        return new CommentResponse(id, postId, nickname, content, createdDateTime);
+    public static CommentResponse of(Long commentId, Long parentCommentId, Long postId, String nickname, String content, LocalDateTime createdDateTime) {
+        return new CommentResponse(commentId, parentCommentId, postId, nickname, content, createdDateTime);
     }
 
     public static CommentResponse fromCommentEntity(Comment comment) {
-        return new CommentResponse(comment.getId(), comment.getPost().getId(),
-                comment.getNickname(), comment.getContent(), comment.getCreatedDateTime());
+        // 최상위 댓글일 경우, getParent() 값이 null이다.
+        Long parentId = (comment.getParent() != null) ? comment.getParent().getId() : null;
+        return new CommentResponse(comment.getId(), parentId,
+                comment.getPost().getId(), comment.getNickname(),
+                comment.getContent(), comment.getCreatedDateTime());
     }
 
 }

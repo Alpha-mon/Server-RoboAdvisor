@@ -14,9 +14,13 @@ import java.lang.annotation.*;
 @ApiResponse(responseCode = "201", description = """
         정상 응답. data로 댓글 정보를 리턴한다.
                     
-        id: 댓글 고유 번호(식별 번호), postId: 댓글이 작성된 게시글의 번호, nickname: 댓글 작성자 닉네임,
+        commentId: 댓글 고유 Id(식별 번호),
+                
+        parentCommentId: 부모 댓글 Id(식별 변호). 최상위 댓글일 경우 값이 null로 담긴다,
+                
+        postId: 댓글이 작성된 게시글의 번호,
                     
-        content: 댓글 작성 내용, createdDateTime: 댓글이 작성된 시간
+        nickname: 댓글 작성자 닉네임, content: 댓글 작성 내용, createdDateTime: 댓글이 작성된 시간
         """,
         content = @Content(schema = @Schema(implementation = SuccessApiResponse.class),
                 examples = @ExampleObject(name = "example",
@@ -26,11 +30,12 @@ import java.lang.annotation.*;
                                        "code": 201,
                                        "message": "댓글이 정상적으로 등록되었습니다",
                                        "data": {
-                                           "id": 2,
+                                           "commentId": 15,
+                                           "parentCommentId": 1,
                                            "postId": 1,
                                            "nickname": "testUser",
-                                           "content": "안녕하세요 댓글 1",
-                                           "createdDateTime": "2023-09-25 03:14:21"
+                                           "content": "test reply comment",
+                                           "createdDateTime": "2023-10-14 20:09:47"
                                        }
                                    }
                                 """

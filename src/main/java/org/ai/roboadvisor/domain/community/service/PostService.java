@@ -2,6 +2,7 @@ package org.ai.roboadvisor.domain.community.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.ai.roboadvisor.domain.community.dto.CommentDto;
 import org.ai.roboadvisor.domain.community.dto.request.PostDeleteRequest;
 import org.ai.roboadvisor.domain.community.dto.request.PostRequest;
 import org.ai.roboadvisor.domain.community.dto.response.PostDeleteResponse;
@@ -17,6 +18,10 @@ import org.ai.roboadvisor.global.exception.ErrorCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Slf4j
 @RequiredArgsConstructor
 @Service
@@ -24,7 +29,6 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
-
 
     @Transactional
     public PostResponse save(PostRequest postRequest) {
@@ -37,20 +41,20 @@ public class PostService {
         // save
         savePost(newPost);
 
-        return PostResponse.fromPostEntity(newPost);
+        return PostResponse.fromPostEntity(newPost, new ArrayList<>()); // 생성시 댓글은 존재하지 않으므로, 초기 빈 리스트 세팅
     }
 
     @Transactional
     public PostResponse getPostById(Long id) {
         Post post = postRepository.findPostById(id).orElseThrow(() -> {
             // Throw a more specific exception, e.g., PostNotFoundException
-            return new CustomException(ErrorCode.POST_ID_NOT_EXISTS);
+            throw new CustomException(ErrorCode.POST_NOT_EXISTED);
         });
 
         // update view
         post.setViewCount(post.getViewCount() + 1);
 
-        return PostResponse.fromPostEntity(post);
+        return PostResponse.fromPostEntity(post, getCommentsAndConvertToCommentDtos(post.getComments()));
     }
 
     @Transactional
@@ -66,7 +70,7 @@ public class PostService {
         // update
         updatePostEntity(existingPost, postRequest);
 
-        return PostResponse.fromPostEntity(existingPost);
+        return PostResponse.fromPostEntity(existingPost, getCommentsAndConvertToCommentDtos(existingPost.getComments()));
     }
 
     @Transactional
@@ -92,6 +96,14 @@ public class PostService {
         if (tendency == Tendency.TYPE_NOT_EXISTS) {
             throw new CustomException(ErrorCode.TENDENCY_INPUT_INVALID);
         }
+    }
+
+    private List<CommentDto> getCommentsAndConvertToCommentDtos(List<Comment> comments) {
+        // 연관관계를 맺은 엔티티간의 무한 참조를 방지하기 위해 DTO 객체를 사용
+        return comments.stream()
+                .filter(comment -> (comment.getDeleteStatus() == DeleteStatus.F))
+                .map(CommentDto::fromComment)
+                .collect(Collectors.toList());
     }
 
     private void savePost(Post post) {

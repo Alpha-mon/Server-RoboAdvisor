@@ -10,9 +10,15 @@ import org.ai.roboadvisor.domain.community.dto.request.CommentUpdateRequest;
 import org.ai.roboadvisor.domain.community.dto.response.CommentDeleteResponse;
 import org.ai.roboadvisor.domain.community.dto.response.CommentResponse;
 import org.ai.roboadvisor.domain.community.service.CommentService;
-import org.ai.roboadvisor.domain.community.swagger_annotation.comment.delete.*;
-import org.ai.roboadvisor.domain.community.swagger_annotation.comment.save.*;
-import org.ai.roboadvisor.domain.community.swagger_annotation.comment.update.*;
+import org.ai.roboadvisor.domain.community.swagger_annotation.comment.delete.delete_BAD_REQUEST;
+import org.ai.roboadvisor.domain.community.swagger_annotation.comment.delete.delete_OK;
+import org.ai.roboadvisor.domain.community.swagger_annotation.comment.delete.delete_UNAUTHORIZED;
+import org.ai.roboadvisor.domain.community.swagger_annotation.comment.save.save_BAD_REQUEST;
+import org.ai.roboadvisor.domain.community.swagger_annotation.comment.save.save_CREATED;
+import org.ai.roboadvisor.domain.community.swagger_annotation.comment.save.save_UNAUTHORIZED;
+import org.ai.roboadvisor.domain.community.swagger_annotation.comment.update.update_BAD_REQUEST;
+import org.ai.roboadvisor.domain.community.swagger_annotation.comment.update.update_OK;
+import org.ai.roboadvisor.domain.community.swagger_annotation.comment.update.update_UNAUTHORIZED;
 import org.ai.roboadvisor.global.common.dto.SuccessApiResponse;
 import org.ai.roboadvisor.global.exception.SuccessCode;
 import org.ai.roboadvisor.global.swagger_annotation.ApiResponse_Internal_Server_Error;
@@ -22,14 +28,18 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RequiredArgsConstructor
-@Tag(name = "community] comment API", description = "댓글 작성, 수정, 삭제 API")
+@Tag(name = "community] comment API", description = "댓글 및 대댓글 작성, 수정, 삭제 API")
 @RestController
 @RequestMapping("/api/community/comment")
 public class CommentController {
 
     private final CommentService commentService;
 
-    @Operation(summary = "댓글 작성", description = "댓글 작성 API")
+    @Operation(summary = "댓글 및 대댓글 작성", description = """
+            댓글 및 대댓글 작성 API
+                        
+            Swagger 문서 하단의 Schemas 중 RequestBody로 'CommentRequest' 를 사용한다.
+            """)
     @save_CREATED
     @save_BAD_REQUEST
     @save_UNAUTHORIZED
@@ -42,7 +52,11 @@ public class CommentController {
                         commentService.save(postId, commentRequest)));
     }
 
-    @Operation(summary = "댓글 수정", description = "댓글 수정 API")
+    @Operation(summary = "댓글 및 대댓글 수정", description = """
+            댓글 및 대댓글 수정 API
+                        
+            Swagger 문서 하단의 Schemas 중 RequestBody로 'CommentUpdateRequest' 를 사용한다.
+            """)
     @update_OK
     @update_BAD_REQUEST
     @update_UNAUTHORIZED
@@ -55,7 +69,11 @@ public class CommentController {
                         commentService.update(postId, commentUpdateRequest)));
     }
 
-    @Operation(summary = "댓글 삭제", description = "댓글 삭제 API")
+    @Operation(summary = "댓글 및 대댓글 삭제", description = """
+            댓글 및 대댓글 삭제 API
+                        
+            Swagger 문서 하단의 Schemas 중 RequestBody로 'CommentDeleteRequest' 를 사용한다.
+            """)
     @delete_OK
     @delete_BAD_REQUEST
     @delete_UNAUTHORIZED

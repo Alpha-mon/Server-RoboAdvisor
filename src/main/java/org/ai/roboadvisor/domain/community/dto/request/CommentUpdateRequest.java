@@ -12,7 +12,7 @@ import javax.validation.constraints.NotBlank;
 @AllArgsConstructor
 public class CommentUpdateRequest {
 
-    @Schema(description = "댓글 고유 번호", example = "1")
+    @Schema(description = "댓글 id", example = "1")
     private Long commentId;
 
     @Schema(description = "사용자의 닉네임", example = "testUser")

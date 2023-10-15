@@ -21,10 +21,11 @@ public enum ErrorCode {
     TIME_INPUT_INVALID(HttpStatus.BAD_REQUEST, "CH01", "time 형식을 yyyy-MM-dd HH:mm:ss으로 작성해 주세요"),
 
     // community
-    POST_ID_NOT_EXISTS(HttpStatus.BAD_REQUEST, "C001", "요청하신 게시글 id가 존재하지 않습니다."),
+    POST_NOT_EXISTED(HttpStatus.BAD_REQUEST, "C001", "요청하신 게시글 id가 존재하지 않습니다."),
     USER_HAS_NOT_AUTHORIZED(HttpStatus.UNAUTHORIZED, "CO02", "사용자에게 권한이 존재하지 않습니다"),
     TENDENCY_NOT_MATCH_BETWEEN_POST_AND_COMMENT(HttpStatus.UNAUTHORIZED,
-            "CO03", "게시글과 댓글의 투자 성향이 달라서 댓글을 작성할 수 없습니다"),
+            "CO03", "게시글과 사용자의 투자 성향이 달라서 댓글을 작성할 수 없습니다"),
+    COMMENT_NOT_EXISTED(HttpStatus.BAD_REQUEST, "C004", "요청하신 댓글 id가 존재하지 않습니다."),
 
     // tendency
     TENDENCY_INPUT_INVALID(HttpStatus.BAD_REQUEST, "TE01", "잘못된 투자 성향 형식이 입력되었습니다");
