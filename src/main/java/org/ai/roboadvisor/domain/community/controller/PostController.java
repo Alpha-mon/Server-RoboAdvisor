@@ -9,6 +9,7 @@ import org.ai.roboadvisor.domain.community.dto.request.PostRequest;
 import org.ai.roboadvisor.domain.community.dto.response.PostDeleteResponse;
 import org.ai.roboadvisor.domain.community.dto.response.PostResponse;
 import org.ai.roboadvisor.domain.community.service.PostService;
+import org.ai.roboadvisor.domain.community.swagger_annotation.post.delete.delete_BAD_REQUEST;
 import org.ai.roboadvisor.domain.community.swagger_annotation.post.delete.delete_OK;
 import org.ai.roboadvisor.domain.community.swagger_annotation.post.delete.delete_UNAUTHORIZED;
 import org.ai.roboadvisor.domain.community.swagger_annotation.post.getPostById.getPostById_BAD_REQUEST;
@@ -81,6 +82,7 @@ public class PostController {
             Swagger 문서 하단의 Schemas 중 RequestBody로 'PostDeleteRequest' 를 사용한다.
             """)
     @delete_OK
+    @delete_BAD_REQUEST
     @delete_UNAUTHORIZED
     @ApiResponse_Internal_Server_Error
     @DeleteMapping("/{postId}")
