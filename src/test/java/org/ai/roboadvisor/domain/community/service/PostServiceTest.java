@@ -75,6 +75,7 @@ class PostServiceTest {
         assertThat(response.getNickname()).isEqualTo(nickname);
         assertThat(response.getContent()).isEqualTo(content);
         assertThat(response.getViewCount()).isEqualTo(0L);
+        assertThat(response.getComments()).isEmpty();
     }
 
     @Test
@@ -96,10 +97,10 @@ class PostServiceTest {
         assertThat(posts.get(0).getId()).isEqualTo(1L);
 
         // then
-        // id = 2L 조회시 오류 발생(존재하지 않아서)
-        Long num = 2L;
+        // id = 100L 조회시 오류 발생(존재하지 않아서)
+        Long idNotInDB = 100L;
         Assertions.assertThrows(CustomException.class, () ->
-                postService.getPostById(num));
+                postService.getPostById(idNotInDB));
     }
 
     @Test
@@ -218,8 +219,103 @@ class PostServiceTest {
         // 조회수 +1 증가 확인
         assertThat(response.getViewCount()).isEqualTo(viewCount + 1L);
 
-        // Pay attention! Comment size is 3
+        // Pay attention! Comment size is cmtCount
         assertThat(response.getComments().size()).isEqualTo(cmtCount);
+    }
+
+    @Test
+    @DisplayName("case 3-2: 정상 로직, 게시글에 포함된 댓글 및 대댓글이 존재하는 경우")
+    void getPostById_with_Comments_and_childComments() {
+        // given
+        Tendency lion = Tendency.LION;
+        String nickname = "test_nickname";
+        String content = "test_content";
+        long viewCount = 0L;
+
+        Post post = Post.builder()
+                .nickname(nickname)
+                .tendency(lion)
+                .content(content)
+                .viewCount(viewCount)
+                .deleteStatus(DeleteStatus.F)
+                .build();
+        postRepository.save(post);
+
+        int cmtCount = 3;
+        int childCmtCountWithNotDeleted = 6;
+        int childCmtCountWithDeleted = 4;
+        List<Comment> comments = IntStream.rangeClosed(1, cmtCount)
+                .mapToObj(c -> {
+                    Comment comment = Comment.builder()
+                            .nickname("cmt_" + c)
+                            .content("cmt_content_" + c)
+                            .deleteStatus(DeleteStatus.F)
+                            .post(post)
+                            .build();
+                    post.getComments().add(comment); // 양방향 연관관계를 유지하기 위해 추가
+
+                    // 게시글 id = 1L, 댓글 id = 1L인 대댓글 생성. DeleteStatus = 'F'
+                    if (c == 1) {
+                        IntStream.rangeClosed(1, childCmtCountWithNotDeleted)
+                                .forEach(c2 -> {
+                                    Comment childComment = Comment.builder()
+                                            .nickname("cmt_child_" + c2)
+                                            .content("cmt_content_child_" + c2)
+                                            .deleteStatus(DeleteStatus.F)
+                                            .parent(comment)             // 부모 댓글 추가
+                                            .post(post)
+                                            .build();
+                                    post.getComments().add(childComment); // 양방향 연관관계를 유지하기 위해 추가
+                                    commentRepository.save(childComment);
+                                });
+                    }
+
+                    // 게시글 id = 1L, 댓글 id = 2L인 대댓글 생성. DeleteStatus = 'T'
+                    if (c == 2) {
+                        IntStream.rangeClosed(1, childCmtCountWithDeleted)
+                                .forEach(c2 -> {
+                                    Comment childComment = Comment.builder()
+                                            .nickname("cmt_child_" + c2)
+                                            .content("cmt_content_child_" + c2)
+                                            .deleteStatus(DeleteStatus.T)
+                                            .parent(comment)             // 부모 댓글 추가
+                                            .post(post)
+                                            .build();
+                                    post.getComments().add(childComment); // 양방향 연관관계를 유지하기 위해 추가
+                                    commentRepository.save(childComment);
+                                });
+                    }
+
+                    return comment;
+                })
+                .toList();
+        commentRepository.saveAll(comments);
+
+        // when
+        // 먼저 postRepository에 들어있는 Post Entity의 개수가 1개인지 검증
+        List<Post> posts = postRepository.findAll();
+        assertThat(posts.size()).isEqualTo(1);
+        assertThat(posts.get(0).getId()).isEqualTo(1L);
+
+        // 댓글 + 대댓글 총합이 cmtCount + childCmtCountWithNotDeleted + childCmtCountWithDeleted 인지 검증(DeleteStatus 무시)
+        List<Comment> resultComments = commentRepository.findAll();
+        assertThat(resultComments.size()).isEqualTo(cmtCount + childCmtCountWithNotDeleted + childCmtCountWithDeleted);
+
+        // then
+        // id = 1L 조회
+        Long id = 1L;
+        PostResponse response = postService.getPostById(id);
+
+        assertThat(response.getId()).isEqualTo(id);
+        assertThat(response.getTendency()).isEqualTo(lion);
+        assertThat(response.getNickname()).isEqualTo(nickname);
+        assertThat(response.getContent()).isEqualTo(content);
+
+        // 조회수 +1 증가 확인
+        assertThat(response.getViewCount()).isEqualTo(viewCount + 1L);
+
+        // Pay attention! 댓글 개수 확인(DeleteStatus 가 반영되는지)
+        assertThat(response.getComments().size()).isEqualTo(cmtCount + childCmtCountWithNotDeleted);
     }
 
     @Test

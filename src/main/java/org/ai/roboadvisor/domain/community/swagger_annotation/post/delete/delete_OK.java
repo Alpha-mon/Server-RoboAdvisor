@@ -12,7 +12,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @ApiResponse(responseCode = "200", description = """
-        게시글이 정상적으로 삭제된 경우: 
+        게시글이 정상적으로 삭제된 경우:
                 
         "data" 값으로 삭제 요청된 게시글의 id값을 리턴한다.
         """,
@@ -26,7 +26,7 @@ import java.lang.annotation.*;
                                         "data": {
                                             "id": 2
                                         }
-                                    }
+                                   }
                                 """
                 )))
 public @interface delete_OK {

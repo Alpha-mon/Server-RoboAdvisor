@@ -3,7 +3,6 @@ package org.ai.roboadvisor.domain.community.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import org.ai.roboadvisor.domain.community.entity.Comment;
 
 import java.time.LocalDateTime;
@@ -12,7 +11,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class CommentDto {
 
-    private Long id;
+    private Long commentId;
+    private Long parentCommentId;
     private String nickname;
     private String content;
 
@@ -20,7 +20,9 @@ public class CommentDto {
     private LocalDateTime createdDateTime;
 
     public static CommentDto fromComment(Comment comment) {
-        return new CommentDto(comment.getId(), comment.getNickname(),
+        // 최상위 댓글일 경우, getParent() 값이 null이다.
+        Long parentId = (comment.getParent() != null) ? comment.getParent().getId() : null;
+        return new CommentDto(comment.getId(), parentId, comment.getNickname(),
                 comment.getContent(), comment.getCreatedDateTime());
     }
 }

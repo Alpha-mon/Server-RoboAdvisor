@@ -71,7 +71,7 @@ class BoardServiceTest {
                     post.getComments().add(comment); // 양방향 연관관계를 유지하기 위해 추가
                     commentRepository.save(comment);
 
-                    // 게시글 id = 1L에 대해서 대댓글 생성, DeleteStatus = 'F'
+                    // 게시글 id = 1L, 댓글 id = 1L인 대댓글 생성, DeleteStatus = 'F'
                     if (j == 1) {
                         IntStream.rangeClosed(1, childCmtCount).forEach(k -> {
                             Comment childComment = Comment.builder()
@@ -100,7 +100,7 @@ class BoardServiceTest {
                     post.getComments().add(comment); // 양방향 연관관계를 유지하기 위해 추가
                     commentRepository.save(comment);
 
-                    // 게시글 id = 2L에 대해서 대댓글 생성, DeleteStatus = 'T'
+                    // 게시글 id = 2L, 댓글 id = 2L인 대댓글 생성, DeleteStatus = 'F'
                     if (j == 1) {
                         IntStream.rangeClosed(1, childCmtCount).forEach(k -> {
                             Comment childComment = Comment.builder()

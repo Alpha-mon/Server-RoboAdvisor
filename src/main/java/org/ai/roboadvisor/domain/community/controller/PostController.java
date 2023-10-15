@@ -33,6 +33,21 @@ import org.springframework.web.bind.annotation.*;
 public class PostController {
     private final PostService postService;
 
+    @Operation(summary = "게시글 작성", description = """
+            게시글 작성 API
+                        
+            Swagger 문서 하단의 Schemas 중 RequestBody로 'PostRequest' 를 사용한다.
+            """)
+    @save_CREATED
+    @save_BAD_REQUEST
+    @ApiResponse_Internal_Server_Error
+    @PostMapping()
+    public ResponseEntity<SuccessApiResponse<PostResponse>> save(@RequestBody PostRequest postRequest) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(SuccessApiResponse.success(SuccessCode.POST_CREATED_SUCCESS,
+                        postService.save(postRequest)));
+    }
+
     @Operation(summary = "게시글 조회", description = "게시글 조회 API")
     @getPostById_OK
     @getPostById_BAD_REQUEST
@@ -44,18 +59,11 @@ public class PostController {
                         postService.getPostById(postId)));
     }
 
-    @Operation(summary = "게시글 작성", description = "게시글 작성 API")
-    @save_CREATED
-    @save_BAD_REQUEST
-    @ApiResponse_Internal_Server_Error
-    @PostMapping()
-    public ResponseEntity<SuccessApiResponse<PostResponse>> save(@RequestBody PostRequest postRequest) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(SuccessApiResponse.success(SuccessCode.POST_CREATED_SUCCESS,
-                        postService.save(postRequest)));
-    }
-
-    @Operation(summary = "게시글 수정", description = "게시글 수정 API")
+    @Operation(summary = "게시글 수정", description = """
+            게시글 수정 API
+                        
+            Swagger 문서 하단의 Schemas 중 RequestBody로 'PostRequest' 를 사용한다.
+            """)
     @update_OK
     @update_BAD_REQUEST
     @update_UNAUTHORIZED
@@ -67,7 +75,11 @@ public class PostController {
                         postService.update(postId, postRequest)));
     }
 
-    @Operation(summary = "게시글 삭제", description = "게시글 삭제 API")
+    @Operation(summary = "게시글 삭제", description = """
+            게시글 삭제 API
+                        
+            Swagger 문서 하단의 Schemas 중 RequestBody로 'PostDeleteRequest' 를 사용한다.
+            """)
     @delete_OK
     @delete_UNAUTHORIZED
     @ApiResponse_Internal_Server_Error
