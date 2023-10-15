@@ -14,11 +14,6 @@ import javax.validation.constraints.NotBlank;
 @AllArgsConstructor
 public class PostRequest {
 
-    // TODO:: 이 부분 제거
-    @Schema(description = "사용자의 투자 성향", example = "SHEEP")
-    @NotBlank
-    private Tendency tendency;
-
     @Schema(description = "사용자의 닉네임", example = "testUser")
     @NotBlank
     private String nickname;
@@ -27,9 +22,9 @@ public class PostRequest {
     @NotBlank
     private String content;
 
-    public static Post fromPostRequest(PostRequest postRequest) {
+    public static Post fromPostRequest(PostRequest postRequest, Tendency userTendency) {
         return Post.builder()
-                .tendency(postRequest.getTendency())
+                .tendency(userTendency)
                 .nickname(postRequest.getNickname())
                 .content(postRequest.getContent())
                 .build();

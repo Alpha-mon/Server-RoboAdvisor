@@ -13,6 +13,8 @@ import org.ai.roboadvisor.domain.community.entity.Post;
 import org.ai.roboadvisor.domain.community.repository.CommentRepository;
 import org.ai.roboadvisor.domain.community.repository.PostRepository;
 import org.ai.roboadvisor.domain.tendency.entity.Tendency;
+import org.ai.roboadvisor.domain.user.entity.User;
+import org.ai.roboadvisor.domain.user.repository.UserRepository;
 import org.ai.roboadvisor.global.exception.CustomException;
 import org.ai.roboadvisor.global.exception.ErrorCode;
 import org.springframework.stereotype.Service;
@@ -27,15 +29,17 @@ import java.util.stream.Collectors;
 @Service
 public class PostService {
 
+    private final UserRepository userRepository;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
 
     @Transactional
     public PostResponse save(PostRequest postRequest) {
-        checkTendencyIsValid(postRequest.getTendency());
+        User user = findExistingUserById(postRequest.getNickname());
+        Tendency userTendency = user.getTendency();
 
         Long initViewCount = 0L;
-        Post newPost = PostRequest.fromPostRequest(postRequest);
+        Post newPost = PostRequest.fromPostRequest(postRequest, userTendency);
         newPost.setViewCount(initViewCount);    // set default value = 0
 
         // save
@@ -46,10 +50,7 @@ public class PostService {
 
     @Transactional
     public PostResponse getPostById(Long id) {
-        Post post = postRepository.findPostById(id).orElseThrow(() -> {
-            // Throw a more specific exception, e.g., PostNotFoundException
-            throw new CustomException(ErrorCode.POST_NOT_EXISTED);
-        });
+        Post post = findExistingPostById(id);
 
         // update view
         post.setViewCount(post.getViewCount() + 1);
@@ -59,13 +60,11 @@ public class PostService {
 
     @Transactional
     public PostResponse update(Long postId, PostRequest postRequest) {
+        User user = findExistingUserById(postRequest.getNickname());
         Post existingPost = findExistingPostById(postId);
 
-        // check tendency type
-        checkTendencyIsValid(postRequest.getTendency());
-
         // validate if user has authority
-        validateUserHasAuthority(postRequest.getNickname(), existingPost);
+        validateUserHasAuthority(user.getNickname(), existingPost);
 
         // update
         updatePostEntity(existingPost, postRequest);
@@ -92,12 +91,6 @@ public class PostService {
         return PostDeleteResponse.fromPostEntity(existingPost);
     }
 
-    private void checkTendencyIsValid(Tendency tendency) {
-        if (tendency == Tendency.TYPE_NOT_EXISTS) {
-            throw new CustomException(ErrorCode.TENDENCY_INPUT_INVALID);
-        }
-    }
-
     private List<CommentDto> getCommentsAndConvertToCommentDtos(List<Comment> comments) {
         // 연관관계를 맺은 엔티티간의 무한 참조를 방지하기 위해 DTO 객체를 사용
         return comments.stream()
@@ -115,9 +108,14 @@ public class PostService {
         }
     }
 
+    private User findExistingUserById(String userNickname) {
+        return userRepository.findUserByNickname(userNickname)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_EXISTED));
+    }
+
     private Post findExistingPostById(Long postId) {
         return postRepository.findPostById(postId)
-                .orElseThrow(() -> new CustomException(ErrorCode.INTERNAL_SERVER_ERROR));
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_EXISTED));
     }
 
     private void validateUserHasAuthority(String requestNickname, Post existingPost) {
@@ -127,7 +125,6 @@ public class PostService {
     }
 
     private void updatePostEntity(Post existingPost, PostRequest postRequest) {
-        existingPost.setTendency(postRequest.getTendency());
         existingPost.setContent(postRequest.getContent());
         existingPost.setViewCount(existingPost.getViewCount() + 1); // add view count + 1
     }
