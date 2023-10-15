@@ -10,6 +10,8 @@ import org.ai.roboadvisor.domain.community.entity.Post;
 import org.ai.roboadvisor.domain.community.repository.CommentRepository;
 import org.ai.roboadvisor.domain.community.repository.PostRepository;
 import org.ai.roboadvisor.domain.tendency.entity.Tendency;
+import org.ai.roboadvisor.domain.user.entity.User;
+import org.ai.roboadvisor.domain.user.repository.UserRepository;
 import org.ai.roboadvisor.global.exception.CustomException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +23,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -38,40 +41,54 @@ class PostServiceTest {
     private PostService postService;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private PostRepository postRepository;
 
     @Autowired
     private CommentRepository commentRepository;
 
+    private final String USER_NICKNAME = "comment_user";
+    private final Tendency USER_TENDENCY = Tendency.LION;
+
     @BeforeEach
     void setUp() {
-
+        User user = User.builder()
+                .email("test@t.com")
+                .nickname(USER_NICKNAME)
+                .tendency(USER_TENDENCY)
+                .gender("male")
+                .password("3fasfzxvae")
+                .birth(LocalDate.now())
+                .career(null)
+                .build();
+        userRepository.save(user);
     }
 
     @Test
-    @DisplayName("case 1: Tendency(투자 성향)이 적절하지 않은 타입이 온 경우, 예외처리")
-    void save_with_TendencyIsNotValid() {
-        PostRequest postRequestWithTendencyIsNotValid = new PostRequest(Tendency.TYPE_NOT_EXISTS,
-                "test_nickname", "test_content");
+    @DisplayName("case 1: DB에 없는 사용자 닉네임이 들어오는 경우, 예외처리")
+    void save_with_user_not_existed_in_db() {
+        String userNickname = "not_in_db";
+        PostRequest request = new PostRequest(userNickname, "test_content");
 
         Assertions.assertThrows(CustomException.class, () ->
-                postService.save(postRequestWithTendencyIsNotValid));
+                postService.save(request));
     }
 
     @Test
     @DisplayName("case 2: 정상 로직")
     void save() {
         // given
-        Tendency lion = Tendency.LION;
-        String nickname = "test_nickname";
+        String nickname = USER_NICKNAME;
         String content = "test_content";
-        PostRequest postRequest = new PostRequest(lion, nickname, content);
+        PostRequest postRequest = new PostRequest(nickname, content);
 
         // when
         PostResponse response = postService.save(postRequest);
 
         // then
-        assertThat(response.getTendency()).isEqualTo(lion);
+        assertThat(response.getTendency()).isEqualTo(USER_TENDENCY);
         assertThat(response.getNickname()).isEqualTo(nickname);
         assertThat(response.getContent()).isEqualTo(content);
         assertThat(response.getViewCount()).isEqualTo(0L);
@@ -79,8 +96,8 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("case 1: id가 db에 존재하지 않는 경우, 예외처리")
-    void getPostById_id_not_exists_inDB() {
+    @DisplayName("case 1: post id가 db에 존재하지 않는 경우, 예외처리")
+    void getPostById_post_not_exists_in_DB() {
         Post post = Post.builder()
                 .nickname("test_user")
                 .tendency(Tendency.LION)
@@ -319,9 +336,11 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("case 1: Tendency(투자 성향)이 적절하지 않은 타입이 온 경우, upd 예외처리")
-    void update_tendency_is_not_valid() {
-        // given
+    @DisplayName("case 1: DB에 없는 사용자 닉네임이 들어오는 경우, 예외처리")
+    void update_with_user_not_existed_in_db() {
+        String userNickname = "not_in_db";
+        PostRequest request = new PostRequest(userNickname, "test_content");
+
         Tendency lion = Tendency.LION;
         String nickname = "test_nickname";
         String content = "test_content";
@@ -336,19 +355,46 @@ class PostServiceTest {
                 .build();
         postRepository.save(post);
 
-        // update Request
-        Tendency tendencyNotValid = Tendency.TYPE_NOT_EXISTS;
-        String updateContent = "update Content!";
-        PostRequest updRequest = new PostRequest(tendencyNotValid, nickname, updateContent);
-
         // then
         long postId = 1L;
         Assertions.assertThrows(CustomException.class, () ->
-                postService.update(postId, updRequest));
+                postService.update(postId, request));
     }
 
     @Test
-    @DisplayName("case 2: 사용자가 게시글 수정 권한이 없는 경우, 예외처리")
+    @DisplayName("case 2: DB에 없는 게시글 id가 요청으로 들어오는 경우, 예외처리")
+    void update_with_post_not_existed_in_db() {
+        String nickname = USER_NICKNAME;
+        PostRequest request = new PostRequest(nickname, "test_content");
+
+        Tendency lion = USER_TENDENCY;
+        String content = "test_content";
+        long viewCount = 0L;
+        Post post = Post.builder()
+                .nickname(nickname)
+                .tendency(lion)
+                .content(content)
+                .viewCount(viewCount)
+                .deleteStatus(DeleteStatus.F)
+                .build();
+        postRepository.save(post);
+
+        // when
+        // 먼저 postRepository에 들어있는 Post Entity의 개수가 1개인지 검증
+        List<Post> posts = postRepository.findAll();
+        assertThat(posts.size()).isEqualTo(1);
+        assertThat(posts.get(0).getId()).isEqualTo(1L);
+
+        // then
+        // id = 100L 조회시 오류 발생(존재하지 않아서)
+        // then
+        long idNotInDB = 100L;
+        Assertions.assertThrows(CustomException.class, () ->
+                postService.update(idNotInDB, request));
+    }
+
+    @Test
+    @DisplayName("case 3: 사용자가 게시글 수정 권한이 없는 경우, 예외처리")
     void update_authorization_is_not_valid() {
         // given
         Tendency lion = Tendency.LION;
@@ -365,10 +411,22 @@ class PostServiceTest {
                 .build();
         postRepository.save(post);
 
+        // 권한 있는 사용자도 같이 저장
+        User user = User.builder()
+                .email("test@tt.com")
+                .nickname(nickname)
+                .tendency(lion)
+                .gender("male")
+                .password("3fasfzxvasdfaszxv1ae")
+                .birth(LocalDate.now())
+                .career(null)
+                .build();
+        userRepository.save(user);
+
         // update Request
-        String notAuthorized = "nickname_2";
+        String notAuthorized = USER_NICKNAME;
         String updateContent = "update Content!";
-        PostRequest updRequest = new PostRequest(lion, notAuthorized, updateContent);
+        PostRequest updRequest = new PostRequest(notAuthorized, updateContent);
 
         // then
         long postId = 1L;
@@ -377,12 +435,12 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("case 3: 정상 로직, 댓글은 없는 경우")
+    @DisplayName("case 4: 정상 로직, 댓글은 없는 경우")
     void update_with_no_comments() {
         // given
         Tendency lion = Tendency.LION;
-        String nickname = "test_nickname";
-        String content = "test_content";
+        String nickname = USER_NICKNAME;
+        String content = "new content";
         long viewCount = 0L;
 
         Post post = Post.builder()
@@ -396,7 +454,7 @@ class PostServiceTest {
 
         // update Request
         String updateContent = "update Content!";
-        PostRequest updRequest = new PostRequest(lion, nickname, updateContent);
+        PostRequest updRequest = new PostRequest(nickname, updateContent);
 
         // when
         long postId = 1L;
@@ -404,6 +462,7 @@ class PostServiceTest {
 
         // then
         assertThat(response.getId()).isEqualTo(postId);
+        assertThat(response.getTendency()).isEqualTo(USER_TENDENCY);
         assertThat(response.getNickname()).isEqualTo(nickname);
         assertThat(response.getContent()).isEqualTo(updateContent);
         assertThat(response.getComments()).isEmpty();
@@ -413,11 +472,11 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("case 3-1: 정상 로직, 댓글이 존재하는 경우")
+    @DisplayName("case 4-1: 정상 로직, 댓글이 존재하는 경우")
     void update_with_comments() {
         // given
         Tendency lion = Tendency.LION;
-        String nickname = "test_nickname";
+        String nickname = USER_NICKNAME;
         String content = "test_content";
         long viewCount = 0L;
 
@@ -447,7 +506,7 @@ class PostServiceTest {
 
         // update Request
         String updateContent = "update Content!";
-        PostRequest updRequest = new PostRequest(lion, nickname, updateContent);
+        PostRequest updRequest = new PostRequest(nickname, updateContent);
 
         // when
         long postId = 1L;
@@ -466,11 +525,11 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("case 3-2: update 시에 BaseEntity의 update 시간이 변경되는 지 검증. 정상 로직, 댓글은 없는 경우")
+    @DisplayName("case 4-2: update 시에 BaseEntity의 update 시간이 변경되는 지 검증. 정상 로직, 댓글은 없는 경우")
     void update_check_time_updated() throws InterruptedException {
         // given
         Tendency lion = Tendency.LION;
-        String nickname = "test_nickname";
+        String nickname = USER_NICKNAME;
         String content = "test_content";
         long viewCount = 0L;
 
@@ -491,7 +550,7 @@ class PostServiceTest {
 
         // update Request
         String updateContent = "update Content!";
-        PostRequest updRequest = new PostRequest(lion, nickname, updateContent);
+        PostRequest updRequest = new PostRequest(nickname, updateContent);
 
         // when
         long postId = 1L;
@@ -502,6 +561,38 @@ class PostServiceTest {
         LocalDateTime updatedTime2 = savedPost2.get().getModifiedDateTime();
 
         assertThat(updatedTime).isBeforeOrEqualTo(updatedTime2);
+    }
+
+    @Test
+    @DisplayName("case 1: DB에 없는 게시글 id가 요청으로 들어오는 경우, 예외처리")
+    void delete_with_post_not_existed_in_db() {
+        String nickname = USER_NICKNAME;
+        PostDeleteRequest deleteRequest = new PostDeleteRequest(nickname);
+
+        Tendency lion = USER_TENDENCY;
+        String content = "test_content";
+        long viewCount = 0L;
+        Post post = Post.builder()
+                .nickname(nickname)
+                .tendency(lion)
+                .content(content)
+                .viewCount(viewCount)
+                .deleteStatus(DeleteStatus.F)
+                .build();
+        postRepository.save(post);
+
+        // when
+        // 먼저 postRepository에 들어있는 Post Entity의 개수가 1개인지 검증
+        List<Post> posts = postRepository.findAll();
+        assertThat(posts.size()).isEqualTo(1);
+        assertThat(posts.get(0).getId()).isEqualTo(1L);
+
+        // then
+        // id = 100L 조회시 오류 발생(존재하지 않아서)
+        // then
+        long idNotInDB = 100L;
+        Assertions.assertThrows(CustomException.class, () ->
+                postService.delete(idNotInDB, deleteRequest));
     }
 
     @Test
