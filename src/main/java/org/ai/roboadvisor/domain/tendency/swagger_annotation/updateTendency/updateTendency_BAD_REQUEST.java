@@ -14,9 +14,9 @@ import java.lang.annotation.*;
 @ApiResponse(responseCode = "400", description = """
         사용자의 닉네임이 DB에 존재하지 않는 경우, 혹은 잘못된 투자 성향이 입력된 경우
                 
-        사용자의 닉네임이 DB에 존재하지 않는 경우: example1
+        사용자의 닉네임이 DB에 존재하지 않는 경우 -> example1
                 
-        잘못된 투자 성향이 입력된 경우: example2
+        잘못된 투자 성향이 입력된 경우 -> example2
         """,
         content = @Content(schema = @Schema(implementation = SuccessApiResponse.class),
                 examples = {@ExampleObject(name = "example1",
