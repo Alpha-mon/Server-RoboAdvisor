@@ -21,22 +21,23 @@ public class TendencyService {
     @Transactional
     public TendencyUpdateDto updateTendency(TendencyUpdateDto tendencyUpdateDto) {
         String userNickname = tendencyUpdateDto.getNickname();
+        User user = userRepository.findUserByNickname(userNickname)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_EXISTED));
 
         Tendency updateTendency = tendencyUpdateDto.getTendency();
-        if (checkTendencyIsValid(updateTendency)) {
-            throw new CustomException(ErrorCode.TENDENCY_INPUT_INVALID);
-        }
+        checkTendencyIsValid(updateTendency);
 
-        User user = userRepository.findUserByNickname(userNickname).orElse(null);
-        if (user == null) {
-            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
-        }
-        user.setTendency(updateTendency);
-
+        updateTendencyOfUser(user, updateTendency);
         return TendencyUpdateDto.of(userNickname, updateTendency);
     }
 
-    private boolean checkTendencyIsValid(Tendency tendency) {
-        return tendency == Tendency.TYPE_NOT_EXISTS;
+    private void checkTendencyIsValid(Tendency tendency) {
+        if (tendency == Tendency.TYPE_NOT_EXISTS) {
+            throw new CustomException(ErrorCode.TENDENCY_INPUT_INVALID);
+        }
+    }
+
+    private void updateTendencyOfUser(User user, Tendency tendency) {
+        user.setTendency(tendency);
     }
 }
