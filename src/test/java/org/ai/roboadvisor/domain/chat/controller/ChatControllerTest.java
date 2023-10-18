@@ -1,7 +1,7 @@
 package org.ai.roboadvisor.domain.chat.controller;
 
 import com.google.gson.Gson;
-import org.ai.roboadvisor.domain.chat.dto.request.ClearRequest;
+import org.ai.roboadvisor.domain.chat.dto.request.MessageClearRequest;
 import org.ai.roboadvisor.domain.chat.dto.request.MessageRequest;
 import org.ai.roboadvisor.domain.chat.dto.response.ChatOrderResponse;
 import org.ai.roboadvisor.domain.chat.dto.response.ChatResponse;
@@ -56,11 +56,11 @@ class ChatControllerTest {
     private final String WELCOME_MESSAGE = "안녕하세요, 저는 AI로보어드바이저의 ChatGPT 서비스에요! 궁금한 점을 입력해주세요";
 
     /**
-     * getAllChats
+     * enter
      */
     @Test
     @DisplayName("처음 대화방에 입장한 경우")
-    void getAllChats_when_data_is_not_exists() throws Exception {
+    void enter_when_data_is_not_exists() throws Exception {
         // given
         String testNickname = TEST_USER_NICKNAME;
         LocalDateTime now = LocalDateTime.now().withNano(0);
@@ -71,7 +71,7 @@ class ChatControllerTest {
                 .build();
 
         // when
-        Mockito.when(chatService.getAllChats(testNickname)).thenReturn(new ChatResult(chatResponse));
+        Mockito.when(chatService.enter(testNickname)).thenReturn(new ChatResult(chatResponse));
 
         // then
         mvc.perform(MockMvcRequestBuilders.get("/api/chat/{nickname}", testNickname))
@@ -82,7 +82,7 @@ class ChatControllerTest {
                 .andExpect(jsonPath("$.data.chatResponse.role").value(ROLE_ASSISTANT))
                 .andDo(print());
 
-        verify(chatService, times(1)).getAllChats(testNickname);
+        verify(chatService, times(1)).enter(testNickname);
     }
 
     @Test
@@ -100,7 +100,7 @@ class ChatControllerTest {
                         .build());
 
         // when
-        Mockito.when(chatService.getAllChats(testNickname)).thenReturn(new ChatResult(responseList));
+        Mockito.when(chatService.enter(testNickname)).thenReturn(new ChatResult(responseList));
 
         // then
         mvc.perform(MockMvcRequestBuilders.get("/api/chat/{nickname}", testNickname))
@@ -111,12 +111,12 @@ class ChatControllerTest {
                 .andExpect(jsonPath("$.data.chatOrderResponse[0].role").value(ROLE_ASSISTANT))
                 .andDo(print());
 
-        verify(chatService, times(1)).getAllChats(testNickname);
+        verify(chatService, times(1)).enter(testNickname);
     }
 
     @Test
     @DisplayName("db에 대화 내용 3개가 저장되어 있는 경우")
-    void getAllChats_three_chat_already_saved_in_db() throws Exception {
+    void enter_three_chat_already_saved_in_db() throws Exception {
         // given
         String testNickname = TEST_USER_NICKNAME;
         LocalDateTime now = LocalDateTime.now().withNano(0);
@@ -142,7 +142,7 @@ class ChatControllerTest {
         );
 
         // when
-        Mockito.when(chatService.getAllChats(testNickname)).thenReturn(new ChatResult(responseList));
+        Mockito.when(chatService.enter(testNickname)).thenReturn(new ChatResult(responseList));
 
         // then
         mvc.perform(MockMvcRequestBuilders.get("/api/chat/{nickname}", testNickname))
@@ -157,7 +157,7 @@ class ChatControllerTest {
                 .andExpect(jsonPath("$.data.chatOrderResponse[2].role").value(ROLE_ASSISTANT))
                 .andDo(print());
 
-        verify(chatService, times(1)).getAllChats(testNickname);
+        verify(chatService, times(1)).enter(testNickname);
     }
 
 
@@ -240,7 +240,7 @@ class ChatControllerTest {
     @DisplayName("정상적으로 db에서 데이터가 제거된 경우, 다시 Welcome Message를 리턴한다")
     void clear() throws Exception {
         // given
-        ClearRequest clearRequest = ClearRequest.of(TEST_USER_NICKNAME);
+        MessageClearRequest messageClearRequest = MessageClearRequest.of(TEST_USER_NICKNAME);
 
         LocalDateTime now = LocalDateTime.now().withNano(0);
         ChatResponse chatResponse = ChatResponse.builder()
@@ -252,10 +252,10 @@ class ChatControllerTest {
         ChatResult chatResult = new ChatResult(chatResponse);
 
         Gson gson = new Gson();
-        String content = gson.toJson(clearRequest);
+        String content = gson.toJson(messageClearRequest);
 
         // when
-        Mockito.when(chatService.clear(TEST_USER_NICKNAME)).thenReturn(chatResult);
+        Mockito.when(chatService.clear(messageClearRequest)).thenReturn(chatResult);
 
         // then
         mvc.perform(MockMvcRequestBuilders.post("/api/chat/clear")
@@ -268,19 +268,19 @@ class ChatControllerTest {
                 .andExpect(jsonPath("$.data.chatResponse.content").value(WELCOME_MESSAGE))
                 .andDo(print());
 
-        verify(chatService, times(1)).clear(TEST_USER_NICKNAME);
+        verify(chatService, times(1)).clear(messageClearRequest);
     }
 
     @Test
     @DisplayName("서버, db 오류로 인해 정상적으로 데이터가 지워지지 않은 경우, CustomException 리턴")
     void clear_should_throw_CustomException_when_delete_fails() throws Exception {
         // given
-        ClearRequest clearRequest = ClearRequest.of(TEST_USER_NICKNAME);
+        MessageClearRequest messageClearRequest = MessageClearRequest.of(TEST_USER_NICKNAME);
         Gson gson = new Gson();
-        String content = gson.toJson(clearRequest);
+        String content = gson.toJson(messageClearRequest);
 
         // when
-        Mockito.when(chatService.clear(TEST_USER_NICKNAME))
+        Mockito.when(chatService.clear(messageClearRequest))
                 .thenThrow(new CustomException(ErrorCode.INTERNAL_SERVER_ERROR));
 
         // then
@@ -293,6 +293,6 @@ class ChatControllerTest {
                 .andExpect(jsonPath("$.data").doesNotExist())     // check data is null
                 .andDo(print());
 
-        verify(chatService, times(1)).clear(TEST_USER_NICKNAME);
+        verify(chatService, times(1)).clear(messageClearRequest);
     }
 }
