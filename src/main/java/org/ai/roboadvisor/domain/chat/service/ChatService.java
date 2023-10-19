@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ai.roboadvisor.domain.chat.dto.Message;
 import org.ai.roboadvisor.domain.chat.dto.request.ChatGptRequest;
+import org.ai.roboadvisor.domain.chat.dto.request.MessageClearRequest;
 import org.ai.roboadvisor.domain.chat.dto.request.MessageRequest;
 import org.ai.roboadvisor.domain.chat.dto.response.ChatGptResponse;
 import org.ai.roboadvisor.domain.chat.dto.response.ChatOrderResponse;
@@ -11,6 +12,7 @@ import org.ai.roboadvisor.domain.chat.dto.response.ChatResponse;
 import org.ai.roboadvisor.domain.chat.dto.response.ChatResult;
 import org.ai.roboadvisor.domain.chat.entity.Chat;
 import org.ai.roboadvisor.domain.chat.repository.ChatRepository;
+import org.ai.roboadvisor.domain.user.repository.UserRepository;
 import org.ai.roboadvisor.global.exception.CustomException;
 import org.ai.roboadvisor.global.exception.ErrorCode;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +36,7 @@ import java.util.Optional;
 public class ChatService {
 
     private final ChatGPTService chatGPTService;
+    private final UserRepository userRepository;
     private final ChatRepository chatRepository;
     private final MongoTemplate mongoTemplate;
     private final String ROLE_USER = "user";
@@ -45,7 +48,7 @@ public class ChatService {
     private String OPEN_AI_MODEL;
 
     @Transactional
-    public ChatResult getAllChats(String nickname) {
+    public ChatResult enter(String nickname) {
         if (!checkIfChatExistsInDb(nickname)) {
             return new ChatResult(createAndSaveWelcomeMessage(nickname));
         } else {
@@ -71,7 +74,14 @@ public class ChatService {
         }
     }
 
+    private boolean checkIfChatExistsInDb(String email) {
+        return chatRepository.existsChatByNickname(email);
+    }
+
     public void save(MessageRequest messageRequest) {
+        // 사용자 닉네임 검증
+        checkUserIsExisted(messageRequest.getNickname());
+
         // MessageRequest time format 검증
         LocalDateTime dateTime = parseDateTime(messageRequest.getTime())
                 .orElseThrow(() -> new CustomException(ErrorCode.TIME_INPUT_INVALID));
@@ -79,6 +89,7 @@ public class ChatService {
         Chat userChat = MessageRequest.toChatEntity(messageRequest, dateTime);
         saveChat(userChat);
     }
+
 
     public ChatResponse getMessageFromApi(String nickname, String message) {
         ChatGptRequest chatGptRequest = ChatGptRequest
@@ -106,13 +117,7 @@ public class ChatService {
                     .message(responseMessage)
                     .time(now)
                     .build();
-
-            try {
-                chat.setTimeZone(chat.getTime(), KST_TO_UTC);  // KST -> UTC
-                chatRepository.save(chat);
-            } catch (RuntimeException e) {
-                throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
-            }
+            saveChat(chat);
 
             // 2. Return Message DTO to client
             return ChatResponse.builder()
@@ -123,7 +128,10 @@ public class ChatService {
         }
     }
 
-    public ChatResult clear(String nickname) {
+    public ChatResult clear(MessageClearRequest clearRequest) {
+        String nickname = clearRequest.getNickname();
+        checkUserIsExisted(nickname);
+
         // Clear All data
         try {
             chatRepository.deleteAllByNickname(nickname);
@@ -134,7 +142,7 @@ public class ChatService {
     }
 
     public ChatResponse createAndSaveWelcomeMessage(String nickname) {
-        String WELCOME_MESSAGE = "안녕하세요, 저는 AI로보어드바이저의 ChatGPT 서비스에요! 궁금한 점을 입력해주세요";
+        String WELCOME_MESSAGE = "안녕하세요, 저는 알파몬의 ChatGPT 서비스에요! 궁금한 점을 입력해주세요";
 
         // 1. Create Chat Entity and Save
         LocalDateTime now = LocalDateTime.now().withNano(0);    // ignore milliseconds
@@ -144,7 +152,6 @@ public class ChatService {
                 .message(WELCOME_MESSAGE)
                 .time(now)
                 .build();
-
         saveChat(chat);
 
         // 2. Entity -> DTO and Return Welcome Message
@@ -171,7 +178,10 @@ public class ChatService {
         }
     }
 
-    private boolean checkIfChatExistsInDb(String email) {
-        return chatRepository.existsChatByNickname(email);
+    private void checkUserIsExisted(String nickname) {
+        userRepository.findUserByNickname(nickname)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_EXISTED));
     }
+
+
 }

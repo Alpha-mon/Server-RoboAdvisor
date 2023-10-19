@@ -120,7 +120,7 @@ public class CommentService {
         Post existPost = postRepository.findPostById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_EXISTED));
         return commentRepository.findCommentByIdAndPost(commentId, existPost)
-                .orElseThrow(() -> new CustomException(ErrorCode.INTERNAL_SERVER_ERROR));
+                .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_EXISTED));
     }
 
     private void validateUserHasAuthority(String requestNickname, Comment existingComment) {

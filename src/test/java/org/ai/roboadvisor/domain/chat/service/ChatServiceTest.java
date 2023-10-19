@@ -1,11 +1,13 @@
 package org.ai.roboadvisor.domain.chat.service;
 
+import org.ai.roboadvisor.domain.chat.dto.request.MessageClearRequest;
 import org.ai.roboadvisor.domain.chat.dto.request.MessageRequest;
 import org.ai.roboadvisor.domain.chat.dto.response.ChatOrderResponse;
 import org.ai.roboadvisor.domain.chat.dto.response.ChatResponse;
 import org.ai.roboadvisor.domain.chat.dto.response.ChatResult;
 import org.ai.roboadvisor.domain.chat.entity.Chat;
 import org.ai.roboadvisor.domain.chat.repository.ChatRepository;
+import org.ai.roboadvisor.domain.user.repository.UserRepository;
 import org.ai.roboadvisor.global.exception.CustomException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +35,9 @@ class ChatServiceTest {
     private ChatService chatService;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private ChatRepository chatRepository;
 
     private final String TEST_USER_NICKNAME = "test_nickname";
@@ -51,16 +56,16 @@ class ChatServiceTest {
     }
 
     /**
-     * getAllChats
+     * enter
      */
     @Test
     @DisplayName("case 1: db에 대화내용이 존재하지 않는 경우, Welcome Message를 Controller로 전달한다")
-    void getAllChats_when_data_is_null() {
+    void enter_when_data_is_null() {
         // given
         String testNickname = TEST_USER_NICKNAME;
 
         // when
-        ChatResult chatResult = chatService.getAllChats(testNickname);
+        ChatResult chatResult = chatService.enter(testNickname);
 
         // then
         assertThat(chatResult.getChatOrderResponse()).isNull();
@@ -91,7 +96,7 @@ class ChatServiceTest {
         chatRepository.saveAll(chats);
 
         // when
-        ChatResult chatResult = chatService.getAllChats(testNickname);
+        ChatResult chatResult = chatService.enter(testNickname);
 
         // then
         assertThat(chatResult.getChatOrderResponse()).isNotNull();
@@ -137,7 +142,7 @@ class ChatServiceTest {
         chatRepository.saveAll(chats);
 
         // when
-        ChatResult chatResult = chatService.getAllChats(testNickname);
+        ChatResult chatResult = chatService.enter(testNickname);
 
         // then
         assertThat(chatResult.getChatOrderResponse()).isNotNull();
@@ -237,6 +242,7 @@ class ChatServiceTest {
     void clear() {
         // given
         String testNickname = TEST_USER_NICKNAME;
+        MessageClearRequest clearRequest = new MessageClearRequest(testNickname);
         LocalDateTime now = LocalDateTime.now();
         List<Chat> chatList = Arrays.asList(
                 Chat.builder()
@@ -256,7 +262,7 @@ class ChatServiceTest {
 
         // when
         // delete All data, and save one welcome message data
-        ChatResult chatResult = chatService.clear(testNickname);
+        ChatResult chatResult = chatService.clear(clearRequest);
 
         // then
         List<Chat> chats = chatRepository.findAll();

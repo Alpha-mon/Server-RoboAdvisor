@@ -11,13 +11,13 @@ import javax.validation.constraints.NotBlank;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "채팅 대화 내역 삭제를 요청할 때 사용하는 JSON 요청 예시")
-public class ClearRequest {
+public class MessageClearRequest {
 
     @Schema(description = "사용자 정보: 닉네임", example = "testUser")
     @NotBlank
     private String nickname;
 
-    public static ClearRequest of(String nickname) {
-        return new ClearRequest(nickname);
+    public static MessageClearRequest of(String nickname) {
+        return new MessageClearRequest(nickname);
     }
 }

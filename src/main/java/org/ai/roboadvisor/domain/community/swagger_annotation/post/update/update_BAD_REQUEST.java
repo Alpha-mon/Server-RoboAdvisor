@@ -11,20 +11,34 @@ import java.lang.annotation.*;
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-@ApiResponse(responseCode = "400", description = "게시글 번호가 잘못 입력된 경우, 혹은 존재하지 않는 경우",
+@ApiResponse(responseCode = "400", description = """
+        1. 사용자의 닉네임이 DB에 존재하지 않는 경우, 2. 게시글 번호가 잘못 입력된 경우, 혹은 존재하지 않는 경우
+                
+        사용자의 닉네임이 DB에 존재하지 않는 경우 -> example1
+                
+        게시글 번호가 잘못 입력된 경우, 혹은 존재하지 않는 경우 -> example2
+        """,
         content = @Content(schema = @Schema(implementation = SuccessApiResponse.class),
-                examples =
-                @ExampleObject(name = "example",
-                        description = "게시글 번호가 잘못 입력된 경우, 혹은 존재하지 않는 경우 예시",
+                examples = {@ExampleObject(name = "example1",
+                        description = "사용자의 닉네임이 DB에 존재하지 않는 경우 예시",
                         value = """
                                    {
                                         "code": 400,
-                                        "message": "요청하신 게시글 id가 존재하지 않습니다.",
+                                        "message": "가입된 사용자의 정보가 존재하지 않습니다",
                                         "data": null
-                                   }
+                                    }
                                 """
-                )
-
+                ),
+                        @ExampleObject(name = "example2",
+                                description = "게시글 번호가 잘못 입력된 경우, 혹은 존재하지 않는 경우 예시",
+                                value = """
+                                           {
+                                                "code": 400,
+                                                "message": "요청하신 게시글 id가 존재하지 않습니다.",
+                                                "data": null
+                                           }
+                                        """
+                        )}
         ))
 public @interface update_BAD_REQUEST {
 }
