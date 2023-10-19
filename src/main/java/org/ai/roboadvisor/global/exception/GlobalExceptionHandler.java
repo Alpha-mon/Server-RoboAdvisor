@@ -26,7 +26,6 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(value = {MethodArgumentTypeMismatchException.class})
     public ResponseEntity<ErrorApiResponse<?>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
-        System.out.println(ex.getRequiredType());
         if (Objects.equals(ex.getRequiredType(), Tendency.class)) {
 
             // Throw your custom exception or handle it directly here
