@@ -48,6 +48,9 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Tendency tendency;
 
+    @Column(nullable = true, length = 20, name = "recommend_stocks")
+    private String recommendStocks;
+
     @Builder
     private User(String email, String password,
                  String nickname, LocalDate birth, String gender, String career, Tendency tendency) {
@@ -62,5 +65,9 @@ public class User {
 
     public void setTendency(Tendency tendency) {
         this.tendency = tendency;
+    }
+
+    public void setRecommendStocks(String recommendStocks) {
+        this.recommendStocks = recommendStocks;
     }
 }
