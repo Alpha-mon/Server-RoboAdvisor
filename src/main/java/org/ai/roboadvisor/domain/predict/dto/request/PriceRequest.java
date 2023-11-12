@@ -12,6 +12,10 @@ import javax.validation.constraints.NotBlank;
 @AllArgsConstructor
 public class PriceRequest {
 
+    @Schema(description = "댓글 작성자의 닉네임", example = "testUser")
+    @NotBlank
+    private String nickname;
+
     @Schema(description = "주식 종목 코드", example = "AAPL")
     @NotBlank
     private String ticker;
