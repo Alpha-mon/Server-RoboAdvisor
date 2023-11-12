@@ -45,7 +45,10 @@ public enum SuccessCode {
     COMMENT_CREATED_SUCCESS(HttpStatus.CREATED.value(), "댓글이 정상적으로 등록되었습니다"),
 
     // tendency
-    TENDENCY_UPDATE_SUCCESS(HttpStatus.CREATED.value(), "투자 성향 테스트 결과가 정상적으로 등록되었습니다");
+    TENDENCY_UPDATE_SUCCESS(HttpStatus.CREATED.value(), "투자 성향 테스트 결과가 정상적으로 등록되었습니다"),
+
+    // predict
+    MARKET_DATA_GET_SUCCESS(HttpStatus.CREATED.value(), "데이터를 불러오는데 성공하였습니다");
 
     private final int code;
     private final String message;
