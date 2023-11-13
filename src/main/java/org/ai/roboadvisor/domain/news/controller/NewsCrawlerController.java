@@ -38,7 +38,7 @@ public class NewsCrawlerController {
 
             웹 크롤링을 해오는 사이트 원본 주소: https://finance.naver.com/item/news_news.nhn?code=161890&page=1&sm=title_entity_id.basic&clusterId=
                         
-            요청 예시) GET: [요청 url]:8080/api/news?nickname=사용자의 닉네임            
+            요청 포맷] GET: [요청 url]:8080/api/news?nickname=사용자의 닉네임, e.g) [요청 url]:8080/api/news?nickname=testUser 
             """)
     @GetMapping
     @news_OK
