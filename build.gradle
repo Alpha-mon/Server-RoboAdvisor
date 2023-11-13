@@ -107,6 +107,9 @@ dependencies {
     // swagger
     implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
 
+    // jsoup
+    implementation 'org.jsoup:jsoup:1.16.1'
+
     // etc
     implementation 'com.google.code.gson:gson:2.9.0'
 

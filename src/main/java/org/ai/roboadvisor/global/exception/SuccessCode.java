@@ -29,6 +29,8 @@ public enum SuccessCode {
     COMMENT_UPDATE_SUCCESS(HttpStatus.OK.value(), "댓글 수정이 정상적으로 처리되었습니다"),
     COMMENT_DELETE_SUCCESS(HttpStatus.OK.value(), "댓글 삭제가 정상적으로 처리되었습니다"),
 
+    NEWS_DATA_GET_SUCCESS(HttpStatus.OK.value(), "뉴스 기사 크롤링에 성공하였습니다"),
+
     /**
      * 201 CREATED
      */
