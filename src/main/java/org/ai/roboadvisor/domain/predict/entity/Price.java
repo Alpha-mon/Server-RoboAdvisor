@@ -20,6 +20,9 @@ public class Price {
     @Field("nickname")
     private String nickname;
 
+    @Field("ticker")
+    private String ticker;
+
     @Field("average_prediction")
     private Double average_prediction;
 
@@ -45,9 +48,10 @@ public class Price {
     private Double WR;
 
     @Builder
-    private Price(String nickname, Double average_prediction, Double Bollinger, Double MACD,
+    private Price(String nickname, String ticker, Double average_prediction, Double Bollinger, Double MACD,
                   Double MOK, Double RSI, Double STCK, Double VR, Double WR) {
         this.nickname = nickname;
+        this.ticker = ticker;
         this.average_prediction = average_prediction;
         this.Bollinger = Bollinger;
         this.MACD = MACD;
@@ -58,9 +62,10 @@ public class Price {
         this.WR = WR;
     }
 
-    public static Price of(String nickname, PriceResponse response) {
+    public static Price of(String nickname, String ticker, PriceResponse response) {
         return Price.builder()
                 .nickname(nickname)
+                .ticker(ticker)
                 .average_prediction(response.getAverage_prediction())
                 .Bollinger(response.getBollinger())
                 .MACD(response.getMACD())

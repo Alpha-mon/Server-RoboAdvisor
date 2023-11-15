@@ -40,7 +40,7 @@ public class PredictService {
             throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
 
-        Price userPrice = Price.of(priceRequest.getNickname(), response);
+        Price userPrice = Price.of(priceRequest.getNickname(), priceRequest.getTicker(), response);
         try {
             priceRepository.save(userPrice);
         } catch (Exception e) {
