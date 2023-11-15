@@ -14,18 +14,28 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MarketDataResponse {
 
-    @JsonProperty("negative_news_count")
-    private Double negative_news_count;
+    @JsonProperty("negative_percentage")
+    private String negative_percentage;
 
-    @JsonProperty("positive_news_count")
-    private Double positive_news_count;
+    @JsonProperty("positive_percentage")
+    private String positive_percentage;
 
-    @JsonProperty("negative_news_examples")
-    private List<String> negative_news_examples;
+    @JsonProperty("prediction_result")
+    private String prediction_result;
 
-    @JsonProperty("positive_news_examples")
-    private List<String> positive_news_examples;
 
-    @JsonProperty("prediction")
-    private String prediction;  // positive or negative
+//    @JsonProperty("negative_news_count")
+//    private Double negative_news_count;
+//
+//    @JsonProperty("positive_news_count")
+//    private Double positive_news_count;
+//
+//    @JsonProperty("negative_news_examples")
+//    private List<String> negative_news_examples;
+//
+//    @JsonProperty("positive_news_examples")
+//    private List<String> positive_news_examples;
+//
+//    @JsonProperty("prediction")
+//    private String prediction;  // positive or negative
 }

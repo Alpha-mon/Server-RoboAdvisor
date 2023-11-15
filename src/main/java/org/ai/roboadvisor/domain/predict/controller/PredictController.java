@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ai.roboadvisor.domain.predict.dto.request.PriceRequest;
 import org.ai.roboadvisor.domain.predict.dto.request.PortFolioRequest;
+import org.ai.roboadvisor.domain.predict.dto.response.MarketDataParseResponse;
 import org.ai.roboadvisor.domain.predict.dto.response.PriceResponse;
 import org.ai.roboadvisor.domain.predict.dto.response.PortFolioResponse;
 import org.ai.roboadvisor.domain.predict.dto.response.MarketDataResponse;
@@ -35,7 +36,7 @@ public class PredictController {
     @GetMapping("/market")
     @predictMarket_CREATED
     @ApiResponse_Internal_Server_Error
-    public ResponseEntity<SuccessApiResponse<MarketDataResponse>> predictPrice() {
+    public ResponseEntity<SuccessApiResponse<MarketDataParseResponse>> predictPrice() {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(SuccessApiResponse.success(SuccessCode.MARKET_DATA_GET_SUCCESS,
                         predictService.predictMarket()));

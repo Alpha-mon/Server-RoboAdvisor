@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ai.roboadvisor.domain.predict.dto.request.PriceRequest;
 import org.ai.roboadvisor.domain.predict.dto.request.PortFolioRequest;
+import org.ai.roboadvisor.domain.predict.dto.response.MarketDataParseResponse;
 import org.ai.roboadvisor.domain.predict.dto.response.PriceResponse;
 import org.ai.roboadvisor.domain.predict.dto.response.PortFolioResponse;
 import org.ai.roboadvisor.domain.predict.dto.response.MarketDataResponse;
@@ -25,12 +26,22 @@ public class PredictService {
     private final PriceRepository priceRepository;
     private final PortFolioRepository portFolioRepository;
 
-    public MarketDataResponse predictMarket() {
+    public MarketDataParseResponse predictMarket() {
         MarketDataResponse response = flaskClient.getMarketData();
         if (response == null) {
             throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
-        return response;
+
+        // Remove the '%' character
+        String negative_percentage = response.getNegative_percentage().replace("%", "");
+        String positive_percentage = response.getPositive_percentage().replace("%", "");
+
+        // Parse the string to a double
+        double negative_percentage_value = Double.parseDouble(negative_percentage);
+        double positive_percentage_value = Double.parseDouble(positive_percentage);
+
+        return new MarketDataParseResponse(negative_percentage_value, positive_percentage_value,
+                response.getPrediction_result());
     }
 
 
