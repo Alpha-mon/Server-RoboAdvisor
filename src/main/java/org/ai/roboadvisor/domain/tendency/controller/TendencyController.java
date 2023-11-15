@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ai.roboadvisor.domain.tendency.dto.TendencyUpdateDto;
+import org.ai.roboadvisor.domain.tendency.dto.response.TendencyUpdateResponse;
 import org.ai.roboadvisor.domain.tendency.service.TendencyService;
 import org.ai.roboadvisor.domain.tendency.swagger_annotation.updateTendency.updateTendency_BAD_REQUEST;
 import org.ai.roboadvisor.domain.tendency.swagger_annotation.updateTendency.updateTendency_CREATED;
@@ -35,7 +36,7 @@ public class TendencyController {
     @updateTendency_BAD_REQUEST
     @ApiResponse_Internal_Server_Error
     @PostMapping("/update")
-    public ResponseEntity<SuccessApiResponse<TendencyUpdateDto>> updateTendency(@RequestBody TendencyUpdateDto tendencyUpdateDto) {
+    public ResponseEntity<SuccessApiResponse<TendencyUpdateResponse>> updateTendency(@RequestBody TendencyUpdateDto tendencyUpdateDto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(SuccessApiResponse.success(SuccessCode.TENDENCY_UPDATE_SUCCESS, tendencyService.updateTendency(tendencyUpdateDto)));
     }

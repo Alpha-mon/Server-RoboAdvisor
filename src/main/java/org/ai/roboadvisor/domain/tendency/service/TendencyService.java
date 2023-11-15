@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ai.roboadvisor.domain.tendency.dto.TendencyDto;
 import org.ai.roboadvisor.domain.tendency.dto.TendencyUpdateDto;
+import org.ai.roboadvisor.domain.tendency.dto.response.TendencyUpdateResponse;
 import org.ai.roboadvisor.domain.tendency.entity.StockKr;
 import org.ai.roboadvisor.domain.tendency.entity.Tendency;
 import org.ai.roboadvisor.domain.tendency.repository.StockKrRepository;
@@ -26,7 +27,7 @@ public class TendencyService {
     private final StockKrRepository stockKrRepository;
 
     @Transactional
-    public TendencyUpdateDto updateTendency(TendencyUpdateDto tendencyUpdateDto) {
+    public TendencyUpdateResponse updateTendency(TendencyUpdateDto tendencyUpdateDto) {
         String userNickname = tendencyUpdateDto.getNickname();
         User user = userRepository.findUserByNickname(userNickname)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_EXISTED));
@@ -55,7 +56,7 @@ public class TendencyService {
         }
         updateRecommendStocksOfUser(user, updateStocks.toString());
 
-        return TendencyUpdateDto.of(userNickname, updateTendency);
+        return TendencyUpdateResponse.of(userNickname, updateTendency, getRecommendStocks);
     }
 
     private void checkTendencyIsValid(Tendency tendency) {
